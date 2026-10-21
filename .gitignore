@@ -26,8 +26,7 @@ target/
 /.built-jar-path
 
 ### VS Code ###
-.vscode/*
-!.vscode/settings.json
+.vscode/
 
 
 ### Logs & Temp ###
