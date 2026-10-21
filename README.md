@@ -17,6 +17,7 @@
 <br/>
 
 [![Version](https://img.shields.io/badge/Release-v1.0.0-orange?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
+[![i18n](https://img.shields.io/badge/i18n-Espa%C3%B1ol_%7C_English-0984e3?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![Audio](https://img.shields.io/badge/Audio-44.1kHz_16--bit_Mono-blueviolet?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![Latency](https://img.shields.io/badge/Latency-%3C20ms_Buffer-emerald?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![Platform](https://img.shields.io/badge/Platform-Windows_|_macOS_|_Linux-lightgrey?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
@@ -37,14 +38,14 @@
 <br/>
 
 <div id="interface-preview">
-  <img src="docs/assets/screenshot.png" alt="Guitar Fretboard Trainer Interface" width="100%" style="border-radius: 10px; border: 1px solid #30363d; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+  <img src="docs/assets/screenshot.png" alt="Guitar Fretboard Trainer Interface (English)" width="100%" style="border-radius: 10px; border: 1px solid #30363d; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
 </div>
 
 <br/>
 
-| 🎸 6-String Diapason | 🎯 Real-Time Pitch DSP | ⚡ Sub-20ms Audio Engine | 🏆 Gamified Streaks | 🎨 Dark Modern GUI |
+| 🎸 6-String Diapason | 🎯 Real-Time Pitch DSP | 🌐 Dual Language (ES/EN) | 🏆 Gamified Streaks | 🎨 Dark Modern GUI |
 | :---: | :---: | :---: | :---: | :---: |
-| Proportional string gauges & frets | YIN autocorrelation algorithm | Continuous PCM microphone capture | Live score, streaks & reaction timer | Sleek FlatLaf Dark theme |
+| Proportional string gauges & frets | YIN autocorrelation algorithm | Built-in Spanish & English selector | Live score, streaks & reaction timer | Sleek FlatLaf Dark theme |
 
 </div>
 
@@ -55,6 +56,8 @@
 
 ### 💡 What is Guitar Fretboard Trainer?
 **Guitar Fretboard Trainer** is a high-performance desktop application engineered with **Java 21**, **Swing (FlatLaf Dark)**, and real-time **DSP (Digital Signal Processing)**. It helps guitarists of all levels achieve instantaneous fretboard recall through randomized challenges and pitch detection with their actual physical instrument.
+
+> **🌐 Multi-Language Ready**: Available out-of-the-box in two languages — **Spanish (Español)** and **English**. Switch between languages instantly with the top-bar dropdown without restarting.
 
 Inspired by proven fretboard learning methodologies like [FaChords Guitar Fretboard Notes](https://www.fachords.com/guitar-fretboard-notes/), it pairs audio pitch analysis with an interactive visual fretboard to bridge the gap between theory and muscle memory.
 
@@ -201,12 +204,14 @@ Alternatively, on Windows double-click **`run.bat`** or execute **`./run.ps1`**.
 ### 🎸 ¿Qué es Guitar Fretboard Trainer?
 **Guitar Fretboard Trainer** es una aplicación de escritorio desarrollada con **Java 21**, **FlatLaf Dark** y procesamiento digital de señales de audio en tiempo real (**DSP**). Su propósito es entrenar y acelerar la memorización visual y auditiva de las notas en el mástil de la guitarra.
 
+> **🌐 Disponible en Dos Idiomas**: La interfaz se encuentra disponible en **Español** e **Inglés**. Permite alternar de idioma al instante desde el selector desplegable de la barra superior sin reiniciar.
+
 Permite responder de dos formas complementarias:
 1. **Tocando tu guitarra real**: El micrófono capta la señal de audio y el algoritmo **YIN** reconoce la nota al instante.
 2. **Haciendo clic en el diapasón interactivo**: Marca el traste y cuerda correspondiente directamente en pantalla.
 
 ### 📋 Características Principales
-- 🌐 **Soporte Multiidioma (i18n)**: Selector integrado en la barra superior para alternar en caliente entre Español e Inglés sin reiniciar la app.
+- 🌐 **Soporte Multiidioma (i18n)**: Totalmente disponible en dos idiomas (**Español e Inglés**). Selector integrado en la barra superior para alternar en caliente sin reiniciar la app.
 - 🎧 **Detección de tono por micrófono**: Análisis de frecuencia fundamental en tiempo real con filtrado de ruido y octavas.
 - 🎨 **Diapasón interactivo detallado**: Cuerdas con grosor calibrado, cejuela, trastes proporcionales e inlays dobles en el traste 12.
 - 🔊 **Audio de referencia sintético**: Generación de onda con armónicos acústicos para entrenar el oído.
