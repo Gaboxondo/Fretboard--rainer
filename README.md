@@ -11,7 +11,7 @@
 [![Maven 3.8+](https://img.shields.io/badge/Maven-3.8+-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
 [![UI FlatLaf Dark](https://img.shields.io/badge/UI-FlatLaf_Dark-1ABC9C?style=for-the-badge&logo=materialdesign&logoColor=white)](https://www.formdev.com/flatlaf/)
 [![DSP YIN Algorithm](https://img.shields.io/badge/DSP-YIN_Pitch_Detector-9B59B6?style=for-the-badge)](https://en.wikipedia.org/wiki/Pitch_detection_algorithm)
-[![Tests](https://img.shields.io/badge/Tests-11_Passing-2ECC71?style=for-the-badge)](https://github.com/Gaboxondo/Fretboard--rainer)
+[![Tests](https://img.shields.io/badge/Tests-13_Passing-2ECC71?style=for-the-badge)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![License MIT](https://img.shields.io/badge/License-MIT-3498DB?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -23,20 +23,20 @@
 
 <br/>
 
-**Language:** [English](#-english) • [Español](#-español)
+**Language:** [English](#english) • [Español](#español)
 
 <p align="center">
-  <a href="#-quick-features">✨ Features</a> •
-  <a href="#-interface-preview">📸 Interface</a> •
-  <a href="#-quick-start">🚀 Quick Start</a> •
-  <a href="#-how-it-works">🧠 How it Works</a> •
-  <a href="#-musical-theory">🎵 Music Theory</a> •
-  <a href="#-technical-architecture">🏗️ Architecture</a>
+  <a href="#features">✨ Features</a> •
+  <a href="#interface-preview">📸 Interface</a> •
+  <a href="#quick-start">🚀 Quick Start</a> •
+  <a href="#how-it-works">🧠 How it Works</a> •
+  <a href="#musical-theory">🎵 Music Theory</a> •
+  <a href="#technical-architecture">🏗️ Architecture</a>
 </p>
 
 <br/>
 
-<div id="-interface-preview">
+<div id="interface-preview">
   <img src="docs/assets/screenshot.png" alt="Guitar Fretboard Trainer Interface" width="100%" style="border-radius: 10px; border: 1px solid #30363d; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
 </div>
 
@@ -50,7 +50,7 @@
 
 ---
 
-<a name="-english"></a>
+<a id="english"></a>
 ## 🌟 English Overview
 
 ### 💡 What is Guitar Fretboard Trainer?
@@ -60,9 +60,10 @@ Inspired by proven fretboard learning methodologies like [FaChords Guitar Fretbo
 
 ---
 
+<a id="features"></a>
 ### ✨ Key Features
 
-- 🎤 **Real-Time Microphone Pitch Detection**: Connect an electric guitar through an audio interface or use an acoustic guitar with your laptop/desktop microphone. The embedded **YIN pitch detection algorithm** tracks the fundamental frequency ($f_0$) and validates your notes live.
+- 🎤 **Real-Time Microphone Pitch Detection**: Connect an electric guitar through an audio interface or use an acoustic guitar with your laptop/desktop microphone. The embedded **YIN pitch detection algorithm** tracks the fundamental frequency (*f*₀) and validates your notes live.
 - 🎸 **Interactive Vector Fretboard**:
   - Proportional string thicknesses (gauge rendering from 1st High E to 6th Low E).
   - Accurate fret markers at frets 3, 5, 7, 9 and double markers at fret 12.
@@ -78,6 +79,7 @@ Inspired by proven fretboard learning methodologies like [FaChords Guitar Fretbo
 
 ---
 
+<a id="how-it-works"></a>
 ### 🧠 How It Works
 
 ```mermaid
@@ -99,15 +101,20 @@ flowchart LR
 
 ---
 
+<a id="musical-theory"></a>
 ### 🎵 Musical Foundations & Tuning Table
 
 #### Standard Western Chromatic Scale (12 Semitones)
-$$\text{C} \rightarrow \text{C}\# \rightarrow \text{D} \rightarrow \text{D}\# \rightarrow \text{E} \rightarrow \text{F} \rightarrow \text{F}\# \rightarrow \text{G} \rightarrow \text{G}\# \rightarrow \text{A} \rightarrow \text{A}\# \rightarrow \text{B}$$
 
-> **Note**: Natural half-steps occur between **B & C** and **E & F** (there are no standard $B\#$ or $E\#$).
+```
+C  ➔  C♯ / D♭  ➔  D  ➔  D♯ / E♭  ➔  E  ➔  F  ➔  F♯ / G♭  ➔  G  ➔  G♯ / A♭  ➔  A  ➔  A♯ / B♭  ➔  B
+```
+
+> [!NOTE]
+> Natural half-steps occur between **B & C** and **E & F** (there are no standard **B♯** or **E♯** notes).
 
 #### Standard Guitar Tuning (EADGBE)
-| String | Name | Note | Fundamental ($f_0$) | Octave Range |
+| String | Name | Note | Fundamental (*f*₀) | Octave Range |
 | :---: | :---: | :---: | :---: | :---: |
 | **6ª** | Low E | **E** | ~82.41 Hz | E2 |
 | **5ª** | A | **A** | ~110.00 Hz | A2 |
@@ -117,10 +124,14 @@ $$\text{C} \rightarrow \text{C}\# \rightarrow \text{D} \rightarrow \text{D}\# \r
 | **1ª** | High E | **E** | ~329.63 Hz | E4 |
 
 Each fret ascends by one chromatic semitone according to:
-$$f = f_{\text{open}} \cdot 2^{\frac{\text{fret}}{12}}$$
+
+$$
+f = f_{\text{open}} \cdot 2^{\frac{\text{fret}}{12}}
+$$
 
 ---
 
+<a id="technical-architecture"></a>
 ### 🏗️ Technical Architecture
 
 ```
@@ -151,6 +162,7 @@ com.threadboardlearn
 
 ---
 
+<a id="quick-start"></a>
 ### 🚀 Quick Start
 
 #### Prerequisites
@@ -178,7 +190,7 @@ Alternatively, on Windows double-click **`run.bat`** or execute **`./run.ps1`**.
 
 ---
 
-<a name="-español"></a>
+<a id="español"></a>
 ## 🇪🇸 Descripción en Español
 
 ### 🎸 ¿Qué es Guitar Fretboard Trainer?
