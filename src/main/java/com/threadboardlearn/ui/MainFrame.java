@@ -110,7 +110,8 @@ public class MainFrame extends JFrame implements GameEventListener {
                     }
                 },
                 session::nextChallenge,
-                fretboardView::setMaxFret
+                fretboardView::setMaxFret,
+                this::showResultsDialog
         );
 
         languageComboBox.addActionListener(e -> {
@@ -248,5 +249,14 @@ public class MainFrame extends JFrame implements GameEventListener {
     @Override
     public void onSessionStateChanged(boolean running) {
         controlPanel.updateSessionState(running);
+        if (!running && session.getStats().getTotalRounds() > 0) {
+            SwingUtilities.invokeLater(this::showResultsDialog);
+        }
+    }
+
+    public void showResultsDialog() {
+        SessionResultsDialog dialog = new SessionResultsDialog(this, session, session::resetStats);
+        dialog.setVisible(true);
     }
 }
+

@@ -144,4 +144,51 @@ class AdaptiveLearningEngineTest {
         double dRatio = (double) dCount / trials;
         assertThat(dRatio).isGreaterThan(0.70);
     }
+
+    @Test
+    @DisplayName("Debe registrar y calcular fallos y aciertos a nivel de cuerda de guitarra")
+    void testStringPerformanceTracking() {
+        com.threadboardlearn.model.GuitarString string5 = com.threadboardlearn.model.GuitarString.STRING_5;
+
+        engine.recordSuccess(Note.A, string5, 1200);
+        engine.recordMistake(Note.C, string5);
+        engine.recordTimeout(Note.D, string5);
+
+        StringPerformance sp = engine.getStringPerformance(string5);
+        assertThat(sp).isNotNull();
+        assertThat(sp.getSuccesses()).isEqualTo(1);
+        assertThat(sp.getMistakes()).isEqualTo(1);
+        assertThat(sp.getTimeouts()).isEqualTo(1);
+        assertThat(sp.getTotalFailures()).isEqualTo(2);
+        assertThat(sp.getAttempts()).isEqualTo(2); // 1 success + 1 timeout
+    }
+
+    @Test
+    @DisplayName("getMostFailedString debe identificar la cuerda con mayor número de fallos")
+    void testMostFailedString() {
+        com.threadboardlearn.model.GuitarString s2 = com.threadboardlearn.model.GuitarString.STRING_2;
+        com.threadboardlearn.model.GuitarString s6 = com.threadboardlearn.model.GuitarString.STRING_6;
+
+        engine.recordMistake(Note.B, s2);
+        engine.recordMistake(Note.E, s6);
+        engine.recordTimeout(Note.G, s6);
+
+        // La 6ª cuerda tiene 2 fallos vs 1 fallo en la 2ª
+        assertThat(engine.getMostFailedString()).isEqualTo(s6);
+    }
+
+    @Test
+    @DisplayName("getNotesSortedByFailures debe ordenar las notas descendentemente según fallos")
+    void testNotesSortedByFailures() {
+        engine.recordMistake(Note.F);
+        engine.recordMistake(Note.F);
+        engine.recordTimeout(Note.B);
+
+        List<NotePerformance> sorted = engine.getNotesSortedByFailures(List.of(Note.C, Note.F, Note.B, Note.A));
+
+        assertThat(sorted.get(0).getNote()).isEqualTo(Note.F); // 2 fallos
+        assertThat(sorted.get(1).getNote()).isEqualTo(Note.B); // 1 fallo
+        assertThat(sorted.get(2).getMistakes() + sorted.get(2).getTimeouts()).isEqualTo(0);
+    }
 }
+

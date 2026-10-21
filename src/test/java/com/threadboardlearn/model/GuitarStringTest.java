@@ -53,4 +53,12 @@ class GuitarStringTest {
         List<Integer> fretsForG = GuitarString.STRING_6.findFretsForNote(Note.G, 12);
         assertThat(fretsForG).containsExactly(3);
     }
+
+    @Test
+    @DisplayName("getLocalizedShortLabel debe devolver la etiqueta abreviada de la cuerda")
+    void testShortLabels() {
+        assertThat(GuitarString.STRING_1.getLocalizedShortLabel()).isEqualTo("1ª");
+        assertThat(GuitarString.STRING_6.getLocalizedShortLabel()).isEqualTo("6ª");
+    }
 }
+

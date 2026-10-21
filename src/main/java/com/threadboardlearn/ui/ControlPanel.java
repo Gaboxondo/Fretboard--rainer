@@ -32,11 +32,13 @@ public class ControlPanel extends JPanel {
 
     private final JButton startStopButton = new JButton();
     private final JButton nextButton = new JButton();
+    private final JButton resultsButton = new JButton();
 
     private final TrainingConfig config;
     private Runnable onStartStop;
     private Runnable onNext;
     private Consumer<Integer> onMaxFretChanged;
+    private Runnable onShowResults;
 
     private boolean isRunning = false;
     private boolean updatingI18n = false;
@@ -99,7 +101,7 @@ public class ControlPanel extends JPanel {
         emptyPanel.setOpaque(false);
         optionsGrid.add(emptyPanel);
 
-        // Panel de acciones (Iniciar / Siguiente)
+        // Panel de acciones (Iniciar / Siguiente / Resultados)
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
         actionPanel.setOpaque(false);
 
@@ -107,21 +109,27 @@ public class ControlPanel extends JPanel {
         startStopButton.setBackground(new Color(40, 167, 69));
         startStopButton.setForeground(Color.WHITE);
         startStopButton.setFocusPainted(false);
-        startStopButton.setPreferredSize(new Dimension(200, 38));
+        startStopButton.setPreferredSize(new Dimension(190, 38));
 
         nextButton.setFont(new Font("SansSerif", Font.BOLD, 13));
         nextButton.setEnabled(false);
         nextButton.setFocusPainted(false);
-        nextButton.setPreferredSize(new Dimension(140, 38));
+        nextButton.setPreferredSize(new Dimension(135, 38));
+
+        resultsButton.setFont(new Font("SansSerif", Font.BOLD, 13));
+        resultsButton.setFocusPainted(false);
+        resultsButton.setPreferredSize(new Dimension(145, 38));
 
         actionPanel.add(startStopButton);
         actionPanel.add(nextButton);
+        actionPanel.add(resultsButton);
 
         add(optionsGrid, BorderLayout.CENTER);
         add(actionPanel, BorderLayout.EAST);
 
         setupListeners();
         updateI18n();
+
 
         // Valores por defecto
         playAudioCheckBox.setSelected(true);
@@ -209,13 +217,23 @@ public class ControlPanel extends JPanel {
         nextButton.addActionListener(e -> {
             if (onNext != null) onNext.run();
         });
+
+        resultsButton.addActionListener(e -> {
+            if (onShowResults != null) onShowResults.run();
+        });
     }
 
-    public void setCallbacks(Runnable onStartStop, Runnable onNext, Consumer<Integer> onMaxFretChanged) {
+    public void setCallbacks(Runnable onStartStop, Runnable onNext, Consumer<Integer> onMaxFretChanged, Runnable onShowResults) {
         this.onStartStop = onStartStop;
         this.onNext = onNext;
         this.onMaxFretChanged = onMaxFretChanged;
+        this.onShowResults = onShowResults;
     }
+
+    public void setCallbacks(Runnable onStartStop, Runnable onNext, Consumer<Integer> onMaxFretChanged) {
+        setCallbacks(onStartStop, onNext, onMaxFretChanged, null);
+    }
+
 
     public void updateSessionState(boolean isRunning) {
         this.isRunning = isRunning;
@@ -305,6 +323,8 @@ public class ControlPanel extends JPanel {
             // Actualizar texto de botones
             startStopButton.setText(isRunning ? I18n.get("control.btn_pause") : I18n.get("control.btn_start"));
             nextButton.setText(I18n.get("control.btn_next"));
+            resultsButton.setText(I18n.get("control.btn_results"));
+            resultsButton.setToolTipText(I18n.get("control.btn_results_tooltip"));
         } finally {
             updatingI18n = false;
         }

@@ -15,10 +15,14 @@ import java.util.Random;
  */
 public class AdaptiveLearningEngine {
     private final Map<Note, NotePerformance> performances = new EnumMap<>(Note.class);
+    private final Map<com.threadboardlearn.model.GuitarString, StringPerformance> stringPerformances = new EnumMap<>(com.threadboardlearn.model.GuitarString.class);
 
     public AdaptiveLearningEngine() {
         for (Note note : Note.values()) {
             performances.put(note, new NotePerformance(note));
+        }
+        for (com.threadboardlearn.model.GuitarString string : com.threadboardlearn.model.GuitarString.values()) {
+            stringPerformances.put(string, new StringPerformance(string));
         }
     }
 
@@ -30,22 +34,51 @@ public class AdaptiveLearningEngine {
         return Collections.unmodifiableMap(performances);
     }
 
-    public synchronized void recordSuccess(Note note, long reactionTimeMs) {
+    public synchronized StringPerformance getStringPerformance(com.threadboardlearn.model.GuitarString string) {
+        return stringPerformances.get(string);
+    }
+
+    public synchronized Map<com.threadboardlearn.model.GuitarString, StringPerformance> getAllStringPerformances() {
+        return Collections.unmodifiableMap(stringPerformances);
+    }
+
+    public synchronized void recordSuccess(Note note, com.threadboardlearn.model.GuitarString string, long reactionTimeMs) {
         if (note != null) {
             performances.get(note).recordSuccess(reactionTimeMs);
+        }
+        if (string != null) {
+            stringPerformances.get(string).recordSuccess(reactionTimeMs);
+        }
+    }
+
+    public synchronized void recordSuccess(Note note, long reactionTimeMs) {
+        recordSuccess(note, null, reactionTimeMs);
+    }
+
+    public synchronized void recordMistake(Note note, com.threadboardlearn.model.GuitarString string) {
+        if (note != null) {
+            performances.get(note).recordMistake();
+        }
+        if (string != null) {
+            stringPerformances.get(string).recordMistake();
         }
     }
 
     public synchronized void recordMistake(Note note) {
+        recordMistake(note, null);
+    }
+
+    public synchronized void recordTimeout(Note note, com.threadboardlearn.model.GuitarString string) {
         if (note != null) {
-            performances.get(note).recordMistake();
+            performances.get(note).recordTimeout();
+        }
+        if (string != null) {
+            stringPerformances.get(string).recordTimeout();
         }
     }
 
     public synchronized void recordTimeout(Note note) {
-        if (note != null) {
-            performances.get(note).recordTimeout();
-        }
+        recordTimeout(note, null);
     }
 
     public synchronized double getWeight(Note note) {
@@ -152,9 +185,52 @@ public class AdaptiveLearningEngine {
         return maxNote;
     }
 
+    /**
+     * Devuelve la cuerda con mayor número de fallos totales (mistakes + timeouts),
+     * o null si no se han registrado fallos en ninguna cuerda.
+     */
+    public synchronized com.threadboardlearn.model.GuitarString getMostFailedString() {
+        com.threadboardlearn.model.GuitarString mostFailed = null;
+        int maxFailures = 0;
+        for (StringPerformance sp : stringPerformances.values()) {
+            int failures = sp.getTotalFailures();
+            if (failures > maxFailures) {
+                maxFailures = failures;
+                mostFailed = sp.getString();
+            }
+        }
+        return mostFailed;
+    }
+
+    /**
+     * Devuelve las notas ordenadas de mayor a menor número de fallos totales.
+     */
+    public synchronized List<NotePerformance> getNotesSortedByFailures(List<Note> filterNotes) {
+        List<Note> source = (filterNotes != null && !filterNotes.isEmpty())
+                ? filterNotes
+                : List.of(Note.values());
+
+        return source.stream()
+                .map(performances::get)
+                .sorted((a, b) -> {
+                    int failsA = a.getMistakes() + a.getTimeouts();
+                    int failsB = b.getMistakes() + b.getTimeouts();
+                    if (failsA != failsB) {
+                        return Integer.compare(failsB, failsA); // Descendente
+                    }
+                    // Si empatan en fallos, ordenar por tiempo medio de reacción
+                    return Double.compare(b.getAverageReactionTimeMs(), a.getAverageReactionTimeMs());
+                })
+                .toList();
+    }
+
     public synchronized void reset() {
         for (NotePerformance perf : performances.values()) {
             perf.reset();
         }
+        for (StringPerformance sp : stringPerformances.values()) {
+            sp.reset();
+        }
     }
 }
+

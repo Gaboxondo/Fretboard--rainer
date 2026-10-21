@@ -170,7 +170,7 @@ public class TrainingSession {
         } else {
             // Nota incorrecta: registrar fallo en el motor adaptativo y estadísticas
             if (config.isAdaptiveLearning()) {
-                adaptiveEngine.recordMistake(currentChallenge.targetNote());
+                adaptiveEngine.recordMistake(currentChallenge.targetNote(), currentChallenge.targetString());
             }
             stats.recordMistake();
 
@@ -256,7 +256,7 @@ public class TrainingSession {
         long reactionTime = System.currentTimeMillis() - currentChallenge.startTimeMs();
         stats.recordSuccess(reactionTime);
         if (config.isAdaptiveLearning()) {
-            adaptiveEngine.recordSuccess(currentChallenge.targetNote(), reactionTime);
+            adaptiveEngine.recordSuccess(currentChallenge.targetNote(), currentChallenge.targetString(), reactionTime);
         }
         audioPlayer.playSuccessSound();
 
@@ -278,7 +278,7 @@ public class TrainingSession {
 
         stats.recordTimeout();
         if (config.isAdaptiveLearning()) {
-            adaptiveEngine.recordTimeout(currentChallenge.targetNote());
+            adaptiveEngine.recordTimeout(currentChallenge.targetNote(), currentChallenge.targetString());
         }
         audioPlayer.playFailureSound();
 
@@ -293,6 +293,15 @@ public class TrainingSession {
         // Pausa breve para que el usuario vea la solución antes del siguiente reto
         timerScheduler.schedule(this::nextChallenge, 1400, TimeUnit.MILLISECONDS);
     }
+
+    public synchronized void resetStats() {
+        stats.reset();
+        adaptiveEngine.reset();
+        if (listener != null) {
+            SwingUtilities.invokeLater(() -> listener.onStatsUpdated(stats));
+        }
+    }
+
 
     public List<Note> getAvailableNotes() {
         return config.isIncludeSharps() ? Note.getAllNotes() : Note.getNaturalNotes();

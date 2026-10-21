@@ -40,6 +40,13 @@ public enum GuitarString {
     }
 
     /**
+     * Obtiene la abreviatura de la cuerda (ej. 1ª, 6ª).
+     */
+    public String getLocalizedShortLabel() {
+        return com.threadboardlearn.i18n.I18n.get("string.short." + number);
+    }
+
+    /**
      * Obtiene la nota en un traste dado (0 = cuerda al aire).
      */
     public Note getNoteAtFret(int fret) {
