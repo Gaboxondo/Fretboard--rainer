@@ -16,7 +16,7 @@
 
 <br/>
 
-[![Version](https://img.shields.io/badge/Release-v1.0.0-orange?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
+[![Version](https://img.shields.io/badge/Release-v1.1.0-orange?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
 [![Download Windows](https://img.shields.io/badge/Download-Windows_EXE-0078D7?style=flat-square&logo=windows&logoColor=white)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
 [![i18n](https://img.shields.io/badge/i18n-Espa%C3%B1ol_%7C_English-0984e3?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![Audio](https://img.shields.io/badge/Audio-44.1kHz_16--bit_Mono-blueviolet?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
@@ -215,7 +215,7 @@ mvn clean package
 mvn exec:java -Dexec.mainClass="com.threadboardlearn.App"
 
 # Or launch the compiled Fat JAR:
-java -jar target/fretboard-trainer-1.0.0.jar
+java -jar target/fretboard-trainer-1.1.0.jar
 ```
 
 Alternatively, on Windows double-click **`run.bat`** or execute **`./run.ps1`**.
@@ -284,4 +284,5 @@ Permite responder de dos formas complementarias:
 
 ## 📄 License
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
 
