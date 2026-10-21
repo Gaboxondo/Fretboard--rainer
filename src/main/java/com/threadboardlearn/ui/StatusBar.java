@@ -2,6 +2,7 @@ package com.threadboardlearn.ui;
 
 import com.threadboardlearn.dsp.PitchDetectionResult;
 import com.threadboardlearn.engine.TrainingStats;
+import com.threadboardlearn.i18n.I18n;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,11 +14,15 @@ import java.awt.*;
 @SuppressWarnings("serial")
 public class StatusBar extends JPanel {
     private final JProgressBar vuMeter = new JProgressBar(0, 100);
-    private final JLabel micNoteLabel = new JLabel("Micrófono: Inactivo");
-    private final JLabel streakLabel = new JLabel("🔥 Racha: 0");
-    private final JLabel bestStreakLabel = new JLabel("⭐ Mejor: 0");
-    private final JLabel accuracyLabel = new JLabel("🎯 Aciertos: 0/0 (0%)");
-    private final JLabel avgTimeLabel = new JLabel("⏱ Tiempo medio: —");
+    private final JLabel vuLbl = new JLabel();
+    private final JLabel micNoteLabel = new JLabel();
+    private final JLabel streakLabel = new JLabel();
+    private final JLabel bestStreakLabel = new JLabel();
+    private final JLabel accuracyLabel = new JLabel();
+    private final JLabel avgTimeLabel = new JLabel();
+
+    private TrainingStats lastStats;
+    private PitchDetectionResult lastPitchResult;
 
     public StatusBar() {
         setLayout(new BorderLayout(15, 0));
@@ -31,7 +36,6 @@ public class StatusBar extends JPanel {
         JPanel micPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         micPanel.setOpaque(false);
 
-        JLabel vuLbl = new JLabel("Mic:");
         vuLbl.setFont(new Font("SansSerif", Font.BOLD, 11));
         vuLbl.setForeground(new Color(160, 170, 185));
 
@@ -70,9 +74,12 @@ public class StatusBar extends JPanel {
 
         add(micPanel, BorderLayout.WEST);
         add(statsPanel, BorderLayout.EAST);
+
+        updateI18n();
     }
 
     public void updatePitchResult(PitchDetectionResult result) {
+        this.lastPitchResult = result;
         if (result == null) return;
 
         // Escalar RMS (0.0 a ~0.15) a porcentaje 0..100 para el medidor
@@ -91,27 +98,48 @@ public class StatusBar extends JPanel {
             String noteStr = result.note().getName();
             double freq = result.frequencyHz();
             double cents = result.centsDeviation();
-            String centsStr = (cents >= 0 ? "+" : "") + String.format("%.0f", cents) + "c";
-            micNoteLabel.setText(String.format("Escuchado: %s (%.1f Hz, %s)", noteStr, freq, centsStr));
+            String centsStr = (cents >= 0 ? "+" : "") + String.format(I18n.getLocale(), "%.0f", cents) + "c";
+            micNoteLabel.setText(I18n.get("status.mic_heard_note", noteStr, String.format(I18n.getLocale(), "%.1f", freq), centsStr));
             micNoteLabel.setForeground(new Color(46, 204, 113));
         } else if (vu > 5) {
-            micNoteLabel.setText("Escuchado: Ruido / Sin tono");
+            micNoteLabel.setText(I18n.get("status.mic_noise"));
             micNoteLabel.setForeground(new Color(160, 165, 175));
         } else {
-            micNoteLabel.setText("Micrófono: Escuchando...");
+            micNoteLabel.setText(I18n.get("status.mic_listening"));
             micNoteLabel.setForeground(new Color(130, 135, 145));
         }
     }
 
     public void updateStats(TrainingStats stats) {
-        streakLabel.setText("🔥 Racha: " + stats.getCurrentStreak());
-        bestStreakLabel.setText("⭐ Mejor: " + stats.getBestStreak());
-        accuracyLabel.setText(String.format("🎯 Aciertos: %d/%d (%.0f%%)",
-                stats.getCorrectCount(), stats.getTotalRounds(), stats.getAccuracyPercent()));
+        this.lastStats = stats;
+        if (stats == null) return;
+
+        streakLabel.setText(I18n.get("status.streak", stats.getCurrentStreak()));
+        bestStreakLabel.setText(I18n.get("status.best_streak", stats.getBestStreak()));
+        accuracyLabel.setText(I18n.get("status.accuracy", stats.getCorrectCount(), stats.getTotalRounds(), stats.getAccuracyPercent()));
         if (stats.getCorrectCount() > 0) {
-            avgTimeLabel.setText(String.format("⏱ Tiempo medio: %.2f s", stats.getAverageReactionTimeSeconds()));
+            avgTimeLabel.setText(I18n.get("status.avg_time", String.format(I18n.getLocale(), "%.2f", stats.getAverageReactionTimeSeconds())));
         } else {
-            avgTimeLabel.setText("⏱ Tiempo medio: —");
+            avgTimeLabel.setText(I18n.get("status.avg_time_empty"));
+        }
+    }
+
+    public void updateI18n() {
+        vuLbl.setText(I18n.get("status.mic"));
+
+        if (lastPitchResult != null) {
+            updatePitchResult(lastPitchResult);
+        } else {
+            micNoteLabel.setText(I18n.get("status.mic_inactive"));
+        }
+
+        if (lastStats != null) {
+            updateStats(lastStats);
+        } else {
+            streakLabel.setText(I18n.get("status.streak", 0));
+            bestStreakLabel.setText(I18n.get("status.best_streak", 0));
+            accuracyLabel.setText(I18n.get("status.accuracy", 0, 0, 0));
+            avgTimeLabel.setText(I18n.get("status.avg_time_empty"));
         }
     }
 }

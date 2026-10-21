@@ -1,24 +1,31 @@
 package com.threadboardlearn.ui;
 
 import com.threadboardlearn.engine.Challenge;
+import com.threadboardlearn.i18n.I18n;
 
 import javax.swing.*;
 import java.awt.*;
 
 /**
  * Panel superior con la presentación visual del reto actual:
- * Nota objetivo en grande, cuerda donde buscarla, barra de tiempo regresiva y
- * feedback.
+ * Nota objetivo en grande, cuerda donde buscarla, barra de tiempo regresiva y feedback.
  */
 @SuppressWarnings("serial")
 public class ChallengeDisplayPanel extends JPanel {
+    private enum State { INITIAL, IN_PROGRESS, SUCCESS, TIMEOUT }
+
     private final JLabel noteLabel = new JLabel("—", SwingConstants.CENTER);
-    private final JLabel stringLabel = new JLabel("Selecciona 'Iniciar' para comenzar", SwingConstants.CENTER);
+    private final JLabel stringLabel = new JLabel("", SwingConstants.CENTER);
     private final JLabel statusLabel = new JLabel(" ", SwingConstants.CENTER);
     private final JProgressBar timerProgressBar = new JProgressBar(0, 1000);
-    private final JButton replaySoundButton = new JButton("🔊 Escuchar nota");
+    private final JButton replaySoundButton = new JButton();
 
     private Runnable onReplayAudio;
+    private Challenge currentChallenge;
+    private State currentState = State.INITIAL;
+    private long lastReactionTimeMs = 0;
+    private int lastSecondsRemaining = 0;
+    private double lastPercentElapsed = 0.0;
 
     public ChallengeDisplayPanel() {
         setLayout(new BorderLayout(15, 10));
@@ -55,7 +62,6 @@ public class ChallengeDisplayPanel extends JPanel {
 
         timerProgressBar.setValue(1000);
         timerProgressBar.setStringPainted(true);
-        timerProgressBar.setString("Listo");
         timerProgressBar.setForeground(new Color(46, 204, 113));
         timerProgressBar.setPreferredSize(new Dimension(300, 20));
 
@@ -72,6 +78,8 @@ public class ChallengeDisplayPanel extends JPanel {
 
         add(noteCard, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
+
+        updateI18n();
     }
 
     public void setOnReplayAudio(Runnable onReplayAudio) {
@@ -79,22 +87,28 @@ public class ChallengeDisplayPanel extends JPanel {
     }
 
     public void showChallenge(Challenge challenge) {
+        this.currentChallenge = challenge;
+        this.currentState = State.IN_PROGRESS;
+
         noteLabel.setText(challenge.targetNote().getName());
         noteLabel.setForeground(new Color(255, 193, 7));
-        stringLabel.setText("Busca la nota en: " + challenge.targetString().getLabel());
-        statusLabel.setText("Toca en tu guitarra o haz clic en el mástil");
+        stringLabel.setText(I18n.get("challenge.find_on", challenge.targetString().getLocalizedLabel()));
+        statusLabel.setText(I18n.get("challenge.instruction"));
         statusLabel.setForeground(new Color(170, 180, 195));
         replaySoundButton.setEnabled(true);
     }
 
     public void updateTimer(int secondsRemaining, double percentElapsed) {
+        this.lastSecondsRemaining = secondsRemaining;
+        this.lastPercentElapsed = percentElapsed;
+
         int progressValue = (int) Math.round((1.0 - percentElapsed) * 1000.0);
         timerProgressBar.setValue(progressValue);
 
         if (secondsRemaining > 0) {
-            timerProgressBar.setString(secondsRemaining + " s restantes");
+            timerProgressBar.setString(I18n.get("challenge.timer_remaining", secondsRemaining));
         } else {
-            timerProgressBar.setString("Sin límite de tiempo");
+            timerProgressBar.setString(I18n.get("challenge.timer_no_limit"));
             timerProgressBar.setValue(1000);
         }
 
@@ -109,32 +123,65 @@ public class ChallengeDisplayPanel extends JPanel {
     }
 
     public void showSuccess(long reactionTimeMs) {
+        this.currentState = State.SUCCESS;
+        this.lastReactionTimeMs = reactionTimeMs;
+
         double seconds = reactionTimeMs / 1000.0;
         noteLabel.setForeground(new Color(46, 204, 113));
-        statusLabel.setText("¡CORRECTO! Tiempo: " + String.format("%.2f s", seconds));
+        statusLabel.setText(I18n.get("challenge.success", String.format(I18n.getLocale(), "%.2f", seconds)));
         statusLabel.setForeground(new Color(46, 204, 113));
         timerProgressBar.setValue(1000);
-        timerProgressBar.setString("¡Acertaste!");
+        timerProgressBar.setString(I18n.get("challenge.timer_correct"));
         timerProgressBar.setForeground(new Color(46, 204, 113));
     }
 
     public void showTimeout(Challenge challenge) {
+        this.currentChallenge = challenge;
+        this.currentState = State.TIMEOUT;
+
         noteLabel.setForeground(new Color(231, 76, 60));
         String fretsStr = challenge.validFrets().toString();
-        statusLabel.setText("¡Tiempo agotado! Estaba en el traste: " + fretsStr);
+        statusLabel.setText(I18n.get("challenge.timeout", fretsStr));
         statusLabel.setForeground(new Color(231, 76, 60));
         timerProgressBar.setValue(0);
-        timerProgressBar.setString("Tiempo agotado");
+        timerProgressBar.setString(I18n.get("challenge.timer_timeout"));
         timerProgressBar.setForeground(new Color(231, 76, 60));
     }
 
     public void reset() {
+        this.currentState = State.INITIAL;
+        this.currentChallenge = null;
+
         noteLabel.setText("—");
         noteLabel.setForeground(new Color(255, 193, 7));
-        stringLabel.setText("Pulsa 'Iniciar Entrenamiento' para empezar");
+        stringLabel.setText(I18n.get("challenge.reset_instruction"));
         statusLabel.setText(" ");
         timerProgressBar.setValue(1000);
-        timerProgressBar.setString("Listo");
+        timerProgressBar.setString(I18n.get("challenge.timer_ready"));
         replaySoundButton.setEnabled(false);
+    }
+
+    public void updateI18n() {
+        replaySoundButton.setText(I18n.get("challenge.hear_note"));
+
+        switch (currentState) {
+            case INITIAL -> {
+                stringLabel.setText(I18n.get("challenge.initial_instruction"));
+                timerProgressBar.setString(I18n.get("challenge.timer_ready"));
+            }
+            case IN_PROGRESS -> {
+                if (currentChallenge != null) {
+                    stringLabel.setText(I18n.get("challenge.find_on", currentChallenge.targetString().getLocalizedLabel()));
+                    statusLabel.setText(I18n.get("challenge.instruction"));
+                    updateTimer(lastSecondsRemaining, lastPercentElapsed);
+                }
+            }
+            case SUCCESS -> showSuccess(lastReactionTimeMs);
+            case TIMEOUT -> {
+                if (currentChallenge != null) {
+                    showTimeout(currentChallenge);
+                }
+            }
+        }
     }
 }

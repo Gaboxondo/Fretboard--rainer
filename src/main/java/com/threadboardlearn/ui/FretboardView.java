@@ -1,6 +1,7 @@
 package com.threadboardlearn.ui;
 
 import com.threadboardlearn.engine.Challenge;
+import com.threadboardlearn.i18n.I18n;
 import com.threadboardlearn.model.GuitarString;
 
 import javax.swing.*;
@@ -65,6 +66,10 @@ public class FretboardView extends JPanel {
 
     public void setMaxFret(int maxFret) {
         this.maxFret = maxFret;
+        repaint();
+    }
+
+    public void updateI18n() {
         repaint();
     }
 
@@ -174,7 +179,7 @@ public class FretboardView extends JPanel {
         // Traste 0 indicador
         g2.setFont(new Font("SansSerif", Font.BOLD, 11));
         g2.setColor(new Color(130, 135, 145));
-        g2.drawString("0 (Aire)", leftMargin - 52, topMargin - 12);
+        g2.drawString(I18n.get("fret.open"), leftMargin - 52, topMargin - 12);
 
         // 6. Resaltar la cuerda activa si hay un reto en curso
         double stringSpacing = (double) fretboardHeight / 5.0;
@@ -222,7 +227,7 @@ public class FretboardView extends JPanel {
         g2.setFont(new Font("SansSerif", isTarget ? Font.BOLD : Font.PLAIN, 12));
         FontMetrics fm = g2.getFontMetrics();
 
-        String numStr = gString.getNumber() + "ª";
+        String numStr = I18n.get("string.short." + gString.getNumber());
         String noteStr = gString.getOpenNote().getName();
         String fullStr = numStr + " " + noteStr;
 

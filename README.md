@@ -11,7 +11,7 @@
 [![Maven 3.8+](https://img.shields.io/badge/Maven-3.8+-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
 [![UI FlatLaf Dark](https://img.shields.io/badge/UI-FlatLaf_Dark-1ABC9C?style=for-the-badge&logo=materialdesign&logoColor=white)](https://www.formdev.com/flatlaf/)
 [![DSP YIN Algorithm](https://img.shields.io/badge/DSP-YIN_Pitch_Detector-9B59B6?style=for-the-badge)](https://en.wikipedia.org/wiki/Pitch_detection_algorithm)
-[![Tests](https://img.shields.io/badge/Tests-13_Passing-2ECC71?style=for-the-badge)](https://github.com/Gaboxondo/Fretboard--rainer)
+[![Tests](https://img.shields.io/badge/Tests-19_Passing-2ECC71?style=for-the-badge)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![License MIT](https://img.shields.io/badge/License-MIT-3498DB?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -75,6 +75,7 @@ Inspired by proven fretboard learning methodologies like [FaChords Guitar Fretbo
   - **Countdown Timer**: 2s to 30s timers or untimed relaxed practice.
   - **Fret Neck Range**: Frets 0–12 (standard) or customized fret ranges.
   - **Anti-Vocal Noise & Noise Gate**: Filters voice frequencies and low-level room noise.
+- 🌐 **Multi-Language Support (i18n)**: Instantaneous dynamic switching between English and Spanish via the top-bar selector without restarting the application.
 - 📊 **Gamified Analytics**: Real-time streak tracking, high scores, accuracy percentage, and average response times.
 
 ---
@@ -149,11 +150,15 @@ com.threadboardlearn
 │   ├── PitchDetector.java        # Core DSP pitch detection interface
 │   └── YinPitchDetector.java     # YIN autocorrelation algorithm implementation
 ├── engine/
-│   ├── GameSession.java          # Session state, timers, streak tracking, and validation
+│   ├── TrainingSession.java      # Session state, timers, streak tracking, and validation
 │   ├── Challenge.java            # Individual challenge instance
-│   └── GameEventListener.java    # Reactive UI notification bridge
+│   ├── GameEventListener.java    # Reactive UI notification bridge
+│   └── TrainingStats.java        # Performance statistics tracking
+├── i18n/
+│   ├── I18n.java                 # Central internationalization engine & listener bus
+│   └── Language.java             # Supported locales (Spanish, English)
 └── ui/
-    ├── MainFrame.java            # Primary JFrame with high-DPI scaling & layout
+    ├── MainFrame.java            # Primary JFrame with language selector & high-DPI scaling
     ├── ChallengeDisplayPanel.java# Giant note typography & animated countdown bar
     ├── FretboardView.java        # Custom painted interactive fretboard component
     ├── ControlPanel.java         # Dropdowns, sliders, and audio device configuration
@@ -201,6 +206,7 @@ Permite responder de dos formas complementarias:
 2. **Haciendo clic en el diapasón interactivo**: Marca el traste y cuerda correspondiente directamente en pantalla.
 
 ### 📋 Características Principales
+- 🌐 **Soporte Multiidioma (i18n)**: Selector integrado en la barra superior para alternar en caliente entre Español e Inglés sin reiniciar la app.
 - 🎧 **Detección de tono por micrófono**: Análisis de frecuencia fundamental en tiempo real con filtrado de ruido y octavas.
 - 🎨 **Diapasón interactivo detallado**: Cuerdas con grosor calibrado, cejuela, trastes proporcionales e inlays dobles en el traste 12.
 - 🔊 **Audio de referencia sintético**: Generación de onda con armónicos acústicos para entrenar el oído.

@@ -7,9 +7,12 @@ import com.threadboardlearn.engine.Challenge;
 import com.threadboardlearn.engine.GameEventListener;
 import com.threadboardlearn.engine.TrainingSession;
 import com.threadboardlearn.engine.TrainingStats;
+import com.threadboardlearn.i18n.I18n;
+import com.threadboardlearn.i18n.Language;
 import com.threadboardlearn.model.TrainingConfig;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -29,8 +32,14 @@ public class MainFrame extends JFrame implements GameEventListener {
     private final ControlPanel controlPanel;
     private final StatusBar statusBar;
 
+    private final JLabel appSubtitleLabel = new JLabel();
+    private final JLabel langTextLabel = new JLabel();
+    private final JComboBox<Language> languageComboBox = new JComboBox<>(Language.values());
+    private final JPanel fretboardContainer = new JPanel(new BorderLayout());
+    private final TitledBorder fretboardBorder;
+
     public MainFrame() {
-        super("Guitar Fretboard Trainer — Aprende las Notas de la Guitarra");
+        super(I18n.get("app.title"));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(1040, 720));
         setPreferredSize(new Dimension(1100, 780));
@@ -48,13 +57,22 @@ public class MainFrame extends JFrame implements GameEventListener {
         this.controlPanel = new ControlPanel(config);
         this.statusBar = new StatusBar();
 
+        this.fretboardBorder = BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(60, 65, 75), 1, true),
+                I18n.get("fretboard.title")
+        );
+
         // 3. Conectar callbacks
         setupCallbacks();
 
         // 4. Montar layout principal
         buildLayout();
 
-        // 5. Cierre seguro de hilos y audio
+        // 5. Escuchar cambios de idioma
+        I18n.addListener(lang -> SwingUtilities.invokeLater(this::updateI18n));
+        updateI18n();
+
+        // 6. Cierre seguro de hilos y audio
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -85,23 +103,70 @@ public class MainFrame extends JFrame implements GameEventListener {
                 session::nextChallenge,
                 fretboardView::setMaxFret
         );
+
+        languageComboBox.addActionListener(e -> {
+            Language selected = (Language) languageComboBox.getSelectedItem();
+            if (selected != null && selected != I18n.getLanguage()) {
+                I18n.setLanguage(selected);
+            }
+        });
     }
 
     private void buildLayout() {
         JPanel contentPane = new JPanel(new BorderLayout(0, 10));
         contentPane.setBackground(new Color(20, 22, 25));
-        contentPane.setBorder(BorderFactory.createEmptyBorder(12, 16, 0, 16));
+        contentPane.setBorder(BorderFactory.createEmptyBorder(10, 16, 0, 16));
 
-        // Parte superior: Desafío actual
-        contentPane.add(challengePanel, BorderLayout.NORTH);
+        // Barra superior: Marca / Título y Selector de Idioma
+        JPanel topBar = new JPanel(new BorderLayout(15, 0));
+        topBar.setOpaque(false);
+        topBar.setBorder(BorderFactory.createEmptyBorder(2, 4, 6, 4));
+
+        JPanel brandPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        brandPanel.setOpaque(false);
+        JLabel iconLabel = new JLabel("🎸");
+        iconLabel.setFont(new Font("SansSerif", Font.PLAIN, 18));
+        JLabel titleLabel = new JLabel("Fretboard Trainer");
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 15));
+        titleLabel.setForeground(new Color(230, 235, 245));
+
+        appSubtitleLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        appSubtitleLabel.setForeground(new Color(140, 150, 165));
+
+        brandPanel.add(iconLabel);
+        brandPanel.add(titleLabel);
+        brandPanel.add(appSubtitleLabel);
+
+        JPanel langPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        langPanel.setOpaque(false);
+        JLabel langIcon = new JLabel("🌐");
+        langIcon.setFont(new Font("SansSerif", Font.PLAIN, 14));
+
+        langTextLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+        langTextLabel.setForeground(new Color(180, 185, 195));
+
+        languageComboBox.setPreferredSize(new Dimension(115, 26));
+        languageComboBox.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        languageComboBox.setFocusable(false);
+
+        langPanel.add(langIcon);
+        langPanel.add(langTextLabel);
+        langPanel.add(languageComboBox);
+
+        topBar.add(brandPanel, BorderLayout.WEST);
+        topBar.add(langPanel, BorderLayout.EAST);
+
+        // Contenedor superior (TopBar + ChallengePanel)
+        JPanel topContainer = new JPanel(new BorderLayout(0, 4));
+        topContainer.setOpaque(false);
+        topContainer.add(topBar, BorderLayout.NORTH);
+        topContainer.add(challengePanel, BorderLayout.CENTER);
+
+        contentPane.add(topContainer, BorderLayout.NORTH);
 
         // Centro: Diapasón de guitarra con contenedor estilizado
-        JPanel fretboardContainer = new JPanel(new BorderLayout());
         fretboardContainer.setOpaque(false);
-        fretboardContainer.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(60, 65, 75), 1, true),
-                "Diapasón Interactivo (Haz clic en el traste y cuerda correspondiente o toca en tu guitarra)"
-        ));
+        fretboardContainer.setBorder(fretboardBorder);
         fretboardContainer.add(fretboardView, BorderLayout.CENTER);
 
         JPanel centerPanel = new JPanel(new BorderLayout(0, 10));
@@ -117,6 +182,21 @@ public class MainFrame extends JFrame implements GameEventListener {
         mainWrapper.add(statusBar, BorderLayout.SOUTH);
 
         setContentPane(mainWrapper);
+    }
+
+    private void updateI18n() {
+        setTitle(I18n.get("app.title"));
+        appSubtitleLabel.setText("— " + I18n.get("app.subtitle"));
+        langTextLabel.setText(I18n.get("app.language"));
+        languageComboBox.setSelectedItem(I18n.getLanguage());
+
+        fretboardBorder.setTitle(I18n.get("fretboard.title"));
+        fretboardContainer.repaint();
+
+        challengePanel.updateI18n();
+        fretboardView.updateI18n();
+        controlPanel.updateI18n();
+        statusBar.updateI18n();
     }
 
     // --- Implementación de GameEventListener ---
