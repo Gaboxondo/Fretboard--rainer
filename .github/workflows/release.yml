@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'src/main/**'
+      - 'installer/**'
+      - 'pom.xml'
   workflow_dispatch:
     inputs:
       bump_type:
@@ -63,14 +67,22 @@ jobs:
       - name: Build and Test with Maven
         shell: pwsh
         run: |
-          mvn -B clean package
+          if ("${{ steps.version.outputs.SHOULD_RELEASE }}" -eq "true") {
+            Write-Host "Compilando y empaquetando proyecto para release..."
+            mvn -B clean package
+          } else {
+            Write-Host "Ejecutando pruebas de verificación (sin release)..."
+            mvn -B clean test
+          }
 
       - name: Set up Inno Setup Compiler
+        if: steps.version.outputs.SHOULD_RELEASE == 'true'
         shell: pwsh
         run: |
           choco install innosetup -y
 
       - name: Package Windows Standalone App & Single-File Installer
+        if: steps.version.outputs.SHOULD_RELEASE == 'true'
         shell: pwsh
         run: |
           $ver = "${{ steps.version.outputs.NEW_VERSION }}"
@@ -111,6 +123,7 @@ jobs:
           Copy-Item "target/fretboard-trainer-$ver.jar" "target/dist/fretboard-trainer.jar"
 
       - name: Commit & Push Version Bump and Git Tag
+        if: steps.version.outputs.SHOULD_RELEASE == 'true'
         shell: pwsh
         run: |
           $ver = "${{ steps.version.outputs.NEW_VERSION }}"
@@ -128,6 +141,7 @@ jobs:
           git push origin "v$ver"
 
       - name: Create GitHub Release
+        if: steps.version.outputs.SHOULD_RELEASE == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.NEW_VERSION }}

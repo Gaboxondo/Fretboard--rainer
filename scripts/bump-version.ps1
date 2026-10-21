@@ -37,27 +37,85 @@ if ([string]::IsNullOrWhiteSpace($sourceBranch) -or $sourceBranch -eq "main" -or
     }
 }
 
-# 3. Determinar el tipo de incremento
+# 3. Determinar el tipo de incremento y si corresponde generar release
+$shouldRelease = $false
 $determinedBump = $BumpType
+$newVersion = ""
 
-if ($determinedBump -eq "auto" -or [string]::IsNullOrWhiteSpace($determinedBump)) {
+if (-not [string]::IsNullOrWhiteSpace($CustomVersion)) {
+    $shouldRelease = $true
+    $determinedBump = "custom"
+    $newVersion = $CustomVersion.TrimStart('v')
+} elseif ($determinedBump -in @("major", "minor", "patch")) {
+    $shouldRelease = $true
+} elseif ($determinedBump -eq "none") {
+    $shouldRelease = $false
+    $determinedBump = "none"
+} else {
+    # Modo 'auto': analizar archivos modificados y mensaje de commit / rama
     $haystack = "$sourceBranch $BranchName $CommitMessage".ToLower()
     Write-Host "Analizando contexto para autoversionado: '$haystack'"
 
-    if ($haystack -match 'feature/' -or $haystack -match 'feat/' -or $haystack -match '\bfeat(\([^)]+\))?:') {
+    # 3.1. Verificar si hay cambios en archivos de código fuente o empaquetado
+    $hasSourceChanges = $false
+    try {
+        $changedFiles = git diff-tree --no-commit-id --name-only -r HEAD 2>$null
+        if ($changedFiles) {
+            foreach ($f in $changedFiles) {
+                if ($f -match '^src/main/' -or $f -match '^installer/' -or $f -eq 'pom.xml') {
+                    $hasSourceChanges = $true
+                    break
+                }
+            }
+            if (-not $hasSourceChanges) {
+                Write-Host "No hay cambios en código fuente (src/main/, installer/, pom.xml). Archivos en commit: $($changedFiles -join ', ')"
+            }
+        } else {
+            $hasSourceChanges = $true
+        }
+    } catch {
+        $hasSourceChanges = $true
+    }
+
+    # 3.2. Clasificación según archivos y Conventional Commits
+    if (-not $hasSourceChanges) {
+        Write-Host "No se detectaron cambios en archivos de código fuente (src/main/, installer/, pom.xml). Omitiendo release."
+        $determinedBump = "none"
+        $shouldRelease = $false
+    } elseif ($haystack -match 'breaking change' -or $haystack -match '\b(feat|fix)(\([^)]+\))?!:') {
+        $determinedBump = "major"
+        $shouldRelease = $true
+    } elseif ($haystack -match 'feature/' -or $haystack -match 'feat/' -or $haystack -match '\bfeat(\([^)]+\))?:') {
         $determinedBump = "minor"
-    } elseif ($haystack -match 'bug/' -or $haystack -match 'bugfix/' -or $haystack -match 'hotfix/' -or $haystack -match 'fix/' -or $haystack -match '\bfix(\([^)]+\))?:') {
+        $shouldRelease = $true
+    } elseif ($haystack -match 'bug/' -or $haystack -match 'bugfix/' -or $haystack -match 'hotfix/' -or $haystack -match 'fix/' -or $haystack -match '\bfix(\([^)]+\))?:' -or $haystack -match '\bperf(\([^)]+\))?:') {
         $determinedBump = "patch"
+        $shouldRelease = $true
+    } elseif ($haystack -match '\b(chore|docs|style|test|ci|build|refactor)(\([^)]+\))?:') {
+        Write-Host "Commit identificado como tipo de mantenimiento/docs/tests ($($Matches[1])). No requiere nueva versión."
+        $determinedBump = "none"
+        $shouldRelease = $false
     } else {
-        # Por defecto ante cambios generales, sube el tercer número (patch)
+        # Cambios de código generales sin prefijo convencional específico
         $determinedBump = "patch"
+        $shouldRelease = $true
     }
 }
 
-# 4. Calcular nueva versión
-if (-not [string]::IsNullOrWhiteSpace($CustomVersion)) {
-    $newVersion = $CustomVersion.TrimStart('v')
-} else {
+# 4. Si no corresponde release, omitir cálculo e incremento
+if (-not $shouldRelease -or $determinedBump -eq "none") {
+    Write-Host "Resultado: NO se genera versión nueva (SHOULD_RELEASE=false, versión mantenida en $currentVersion)."
+    if ($env:GITHUB_OUTPUT) {
+        "SHOULD_RELEASE=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        "NEW_VERSION=$currentVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        "BUMP_TYPE=none" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        "CURRENT_VERSION=$currentVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+    }
+    return $currentVersion
+}
+
+# 5. Calcular nueva versión para release
+if ([string]::IsNullOrWhiteSpace($newVersion)) {
     switch ($determinedBump.ToLower()) {
         "major" {
             $major++
@@ -110,6 +168,7 @@ foreach ($rPath in $readmeFiles) {
 
 # 7. Exportar a GitHub Output si estamos en un runner de GitHub Actions
 if ($env:GITHUB_OUTPUT) {
+    "SHOULD_RELEASE=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
     "NEW_VERSION=$newVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
     "BUMP_TYPE=$determinedBump" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
     "CURRENT_VERSION=$currentVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
