@@ -44,6 +44,15 @@ public class MainFrame extends JFrame implements GameEventListener {
         setMinimumSize(new Dimension(1040, 720));
         setPreferredSize(new Dimension(1100, 780));
 
+        // Cargar icono de la aplicación
+        try {
+            java.net.URL iconUrl = getClass().getResource("/icons/app-icon.png");
+            if (iconUrl != null) {
+                setIconImage(new ImageIcon(iconUrl).getImage());
+            }
+        } catch (Exception ignored) {
+        }
+
         // 1. Inicialización de la lógica del sistema
         this.config = new TrainingConfig();
         this.audioPlayer = new AudioPlayer();

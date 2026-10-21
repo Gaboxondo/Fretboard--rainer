@@ -1,37 +1,41 @@
-name: Build and Release
+name: Auto-Version, Build & Release
 
 on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
-      create_release:
-        description: '¿Crear una Release en GitHub con los archivos adjuntos?'
+      bump_type:
+        description: 'Tipo de incremento de versión'
         required: true
-        type: boolean
-        default: true
-      release_tag:
-        description: 'Nombre del Tag / Versión (ej: v1.0.0). Requerido si creas Release manual.'
+        type: choice
+        default: 'auto'
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+      custom_version:
+        description: 'Versión personalizada exacta (opcional, ej: 1.1.0)'
         required: false
-        default: 'v1.0.0'
+        default: ''
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build, Test & Package
-    runs-on: ubuntu-latest
+  release:
+    name: Auto-Version & Release Windows App
+    runs-on: windows-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -40,59 +44,87 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      - name: Build and Test with Maven
-        run: mvn -B clean package
-
-      - name: Prepare release files
-        id: prep
+      - name: Calculate & Bump Version
+        id: version
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "PROJECT_VERSION=$VERSION" >> $GITHUB_ENV
+          $msg = @"
+          ${{ github.event.head_commit.message }}
+          "@
+          Write-Host "Head Commit Message: $msg"
           
-          # Copiar JAR con nombre limpio y versionado
-          mkdir -p dist
-          cp target/fretboard-trainer-${VERSION}.jar dist/fretboard-trainer-${VERSION}.jar
-          cp target/fretboard-trainer-${VERSION}.jar dist/fretboard-trainer.jar
-          
-          # Crear lanzador batch para el paquete zip
-          mkdir -p dist/bundle
-          cp dist/fretboard-trainer.jar dist/bundle/
-          cat << 'EOF' > dist/bundle/run.bat
-          @echo off
-          title Fretboard Trainer
-          echo Iniciando Fretboard Trainer...
-          java -jar fretboard-trainer.jar
-          if %ERRORLEVEL% NEQ 0 (
-              echo.
-              echo Error al iniciar la aplicacion. Asegurate de tener Java 21 instalado.
-              pause
-          )
-          EOF
-          
-          # Empaquetar zip
-          cd dist/bundle
-          zip -r ../fretboard-trainer-${VERSION}-windows.zip ./*
-          cd ../..
+          ./scripts/bump-version.ps1 `
+            -BumpType "${{ inputs.bump_type || 'auto' }}" `
+            -CustomVersion "${{ inputs.custom_version || '' }}" `
+            -CommitMessage "$msg"
 
-      - name: Upload Artifacts to GitHub Actions
-        uses: actions/upload-artifact@v4
-        with:
-          name: fretboard-trainer-${{ env.PROJECT_VERSION }}
-          path: |
-            dist/*.jar
-            dist/*.zip
+      - name: Build and Test with Maven
+        shell: pwsh
+        run: |
+          mvn -B clean package
+
+      - name: Package Windows Standalone Executable (jpackage)
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.version.outputs.NEW_VERSION }}"
+          Write-Host "Generando ejecutable autónomo para Windows (v$ver)..."
+          
+          # Carpeta de entrada limpia exclusiva para el fat jar
+          New-Item -ItemType Directory -Force "target/jpackage-in" | Out-Null
+          Copy-Item "target/fretboard-trainer-$ver.jar" "target/jpackage-in/"
+          
+          # jpackage genera la carpeta autónoma con FretboardTrainer.exe, icono e JRE 21 empotrado
+          & jpackage `
+            --name "FretboardTrainer" `
+            --input "target/jpackage-in" `
+            --main-jar "fretboard-trainer-$ver.jar" `
+            --main-class "com.threadboardlearn.App" `
+            --type app-image `
+            --dest "target/dist" `
+            --icon "src/main/resources/icons/app-icon.ico" `
+            --app-version "$ver" `
+            --vendor "ThreadBoardLearn" `
+            --description "Guitar Fretboard Trainer"
+          
+          # Empaquetar en ZIP descargable listo para doble click
+          Compress-Archive -Path "target/dist/FretboardTrainer" -DestinationPath "target/dist/FretboardTrainer-v$ver-Windows.zip"
+          Copy-Item "target/dist/FretboardTrainer-v$ver-Windows.zip" "target/dist/FretboardTrainer-Windows.zip"
+          
+          # Copiar JARs para adjuntar en la release
+          Copy-Item "target/fretboard-trainer-$ver.jar" "target/dist/"
+          Copy-Item "target/fretboard-trainer-$ver.jar" "target/dist/fretboard-trainer.jar"
+
+      - name: Commit & Push Version Bump and Git Tag
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.version.outputs.NEW_VERSION }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add pom.xml README.md
+          $status = git status --porcelain
+          if ($status) {
+            git commit -m "chore(release): bump version to v$ver [skip ci]"
+            git push origin main
+          }
+          
+          git tag -a "v$ver" -m "Release v$ver"
+          git push origin "v$ver"
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release == true)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || inputs.release_tag }}
-          name: Fretboard Trainer ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || inputs.release_tag }}
+          tag_name: v${{ steps.version.outputs.NEW_VERSION }}
+          name: Fretboard Trainer v${{ steps.version.outputs.NEW_VERSION }}
           draft: false
           prerelease: false
           generate_release_notes: true
           files: |
-            dist/fretboard-trainer-${{ env.PROJECT_VERSION }}.jar
-            dist/fretboard-trainer-${{ env.PROJECT_VERSION }}-windows.zip
+            target/dist/FretboardTrainer-v${{ steps.version.outputs.NEW_VERSION }}-Windows.zip
+            target/dist/FretboardTrainer-Windows.zip
+            target/dist/fretboard-trainer-${{ steps.version.outputs.NEW_VERSION }}.jar
+            target/dist/fretboard-trainer.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

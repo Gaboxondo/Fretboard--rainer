@@ -16,7 +16,8 @@
 
 <br/>
 
-[![Version](https://img.shields.io/badge/Release-v1.0.0-orange?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
+[![Version](https://img.shields.io/badge/Release-v1.0.0-orange?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
+[![Download Windows](https://img.shields.io/badge/Download-Windows_EXE-0078D7?style=flat-square&logo=windows&logoColor=white)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
 [![i18n](https://img.shields.io/badge/i18n-Espa%C3%B1ol_%7C_English-0984e3?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![Audio](https://img.shields.io/badge/Audio-44.1kHz_16--bit_Mono-blueviolet?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![Latency](https://img.shields.io/badge/Latency-%3C20ms_Buffer-emerald?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
@@ -24,15 +25,21 @@
 
 <br/>
 
+<a href="https://github.com/Gaboxondo/Fretboard--rainer/releases/latest">
+  <img src="https://img.shields.io/badge/Download_for_Windows-FretboardTrainer.exe_(Zero_Setup)-0078D7?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Portable Executable" />
+</a>
+
+<br/><br/>
+
 **Language:** [English](#english) • [Español](#español)
 
 <p align="center">
+  <a href="#quick-download">📥 Download</a> •
   <a href="#features">✨ Features</a> •
   <a href="#interface-preview">📸 Interface</a> •
   <a href="#quick-start">🚀 Quick Start</a> •
   <a href="#how-it-works">🧠 How it Works</a> •
-  <a href="#musical-theory">🎵 Music Theory</a> •
-  <a href="#technical-architecture">🏗️ Architecture</a>
+  <a href="#auto-versioning">🔄 Versioning</a>
 </p>
 
 <br/>
@@ -170,8 +177,25 @@ com.threadboardlearn
 
 ---
 
+<a id="quick-download"></a>
+### 📥 Download & Install (Zero Configuration)
+
+No technical knowledge or Java installation is required to run the desktop application!
+
+| Platform | Package | How to Run | Link |
+| :--- | :--- | :--- | :--- |
+| **🪟 Windows (Recommended)** | Standalone `.zip` with `FretboardTrainer.exe` | Unzip folder & double-click **`FretboardTrainer.exe`** | [⬇️ Download Latest Windows Release](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
+| **☕ Multiplatform (Linux/macOS)** | Portable Fat JAR | Run with Java 21: `java -jar fretboard-trainer.jar` | [⬇️ Download Latest JAR](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
+
+> [!TIP]
+> **Windows Users**: The standalone package bundles a dedicated Java 21 runtime and the application icon. You do not need to install Java, set environment variables, or open the terminal.
+
+---
+
 <a id="quick-start"></a>
-### 🚀 Quick Start
+### 🚀 Developer Quick Start
+
+If you wish to build from source or contribute:
 
 #### Prerequisites
 - **JDK 21** or later ([Amazon Corretto 21](https://aws.amazon.com/corretto/), [Eclipse Temurin 21](https://adoptium.net/))
@@ -198,6 +222,38 @@ Alternatively, on Windows double-click **`run.bat`** or execute **`./run.ps1`**.
 
 ---
 
+<a id="auto-versioning"></a>
+### 🔄 Automated Versioning & Git Release Flow
+
+The project follows strict **Semantic Versioning (SemVer)** automated via GitHub Actions:
+
+```mermaid
+flowchart TD
+    A[Start Work] --> B{Select Branch Type}
+    B -->|New Feature| C["feature/your-feature-name"]
+    B -->|Bug Fix| D["bug/issue-description"]
+    B -->|Urgent Hotfix| E["hotfix/quick-patch"]
+    C --> F[Merge / Push to main]
+    D --> F
+    E --> F
+    F --> G[CI/CD Workflow Triggered]
+    G --> H{Determine Bump Type}
+    H -->|feature/*| I["Bumps MINOR (e.g., 1.0.0 ➔ 1.1.0)"]
+    H -->|bug/* or hotfix/*| J["Bumps PATCH (e.g., 1.0.0 ➔ 1.0.1)"]
+    I --> K[Auto-Update pom.xml & README]
+    J --> K
+    K --> L[Generate Standalone Windows .exe with Icon]
+    L --> M[Create Git Tag vX.Y.Z & Push]
+    M --> N[Publish GitHub Release with Windows App]
+```
+
+#### Branch Naming Guidelines:
+- **`feature/<name>`** or **`feat/<name>`**: Increments the **second number (Minor)** (`1.0.0` ➔ `1.1.0`). Use for new functionalities, game modes, or UI enhancements.
+- **`bug/<name>`** or **`bugfix/<name>`**: Increments the **third number (Patch)** (`1.0.0` ➔ `1.0.1`). Use for bug fixes and corrective adjustments.
+- **`hotfix/<name>`**: Increments the **third number (Patch)** (`1.0.0` ➔ `1.0.1`). Use for urgent production fixes.
+
+---
+
 <a id="español"></a>
 ## 🇪🇸 Descripción en Español
 
@@ -209,6 +265,12 @@ Alternatively, on Windows double-click **`run.bat`** or execute **`./run.ps1`**.
 Permite responder de dos formas complementarias:
 1. **Tocando tu guitarra real**: El micrófono capta la señal de audio y el algoritmo **YIN** reconoce la nota al instante.
 2. **Haciendo clic en el diapasón interactivo**: Marca el traste y cuerda correspondiente directamente en pantalla.
+
+### 📥 Descarga para Windows (Sin necesidad de instalar Java)
+1. Ve a la página de [Última Release en GitHub](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest).
+2. Descarga el archivo **`FretboardTrainer-Windows.zip`**.
+3. Descomprime la carpeta en tu equipo.
+4. Haz doble clic en **`FretboardTrainer.exe`** (con su icono de mástil de guitarra) para comenzar a usarlo de inmediato.
 
 ### 📋 Características Principales
 - 🌐 **Soporte Multiidioma (i18n)**: Totalmente disponible en dos idiomas (**Español e Inglés**). Selector integrado en la barra superior para alternar en caliente sin reiniciar la app.
@@ -222,3 +284,4 @@ Permite responder de dos formas complementarias:
 
 ## 📄 License
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
