@@ -19,7 +19,6 @@ import java.util.concurrent.Executors;
  */
 public class AudioPlayer {
     private static final int GUITAR_STEEL_PROGRAM = 25; // General MIDI 25: Acoustic Guitar (Steel)
-    private static final int CHIME_PROGRAM = 10;        // Music Box / Bell for correct
     private static final int GUITAR_CHANNEL = 0;
 
     private Synthesizer synthesizer;

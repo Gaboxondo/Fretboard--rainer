@@ -3,8 +3,8 @@ package com.threadboardlearn;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.threadboardlearn.ui.MainFrame;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 /**
  * Punto de entrada principal de la aplicación Guitar Fretboard Trainer.
