@@ -11,7 +11,7 @@
 [![Maven 3.8+](https://img.shields.io/badge/Maven-3.8+-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
 [![UI FlatLaf Dark](https://img.shields.io/badge/UI-FlatLaf_Dark-1ABC9C?style=for-the-badge&logo=materialdesign&logoColor=white)](https://www.formdev.com/flatlaf/)
 [![DSP YIN Algorithm](https://img.shields.io/badge/DSP-YIN_Pitch_Detector-9B59B6?style=for-the-badge)](https://en.wikipedia.org/wiki/Pitch_detection_algorithm)
-[![Tests](https://img.shields.io/badge/Tests-19_Passing-2ECC71?style=for-the-badge)](https://github.com/Gaboxondo/Fretboard--rainer)
+[![Tests](https://img.shields.io/badge/Tests-30_Passing-2ECC71?style=for-the-badge)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![License MIT](https://img.shields.io/badge/License-MIT-3498DB?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -85,8 +85,9 @@ Inspired by proven fretboard learning methodologies like [FaChords Guitar Fretbo
   - **Countdown Timer**: 2s to 30s timers or untimed relaxed practice.
   - **Fret Neck Range**: Frets 0–12 (standard) or customized fret ranges.
   - **Anti-Vocal Noise & Noise Gate**: Filters voice frequencies and low-level room noise.
+- 🧠 **Smart Adaptive Training Engine (Dynamic Probability Weighting)**: Rather than pure uniform randomness, the system dynamically recalculates selection probabilities based on your real performance. Notes you miss (wrong clicks or timeouts) or take longer to find are weighted higher and appear more frequently to accelerate muscle memory. As your recall speed and accuracy improve, weights decay back to baseline.
 - 🌐 **Multi-Language Support (i18n)**: Instantaneous dynamic switching between English and Spanish via the top-bar selector without restarting the application.
-- 📊 **Gamified Analytics**: Real-time streak tracking, high scores, accuracy percentage, and average response times.
+- 📊 **Gamified Analytics**: Real-time streak tracking, high scores, accuracy percentage, mistake counters, and average response times.
 
 ---
 
@@ -275,12 +276,13 @@ Permite responder de dos formas complementarias:
 *(También tienes disponible la versión portable en `.zip` por si prefieres no instalar nada).*
 
 ### 📋 Características Principales
+- 🧠 **Motor de Práctica Adaptativa Inteligente (Probabilidad Ponderada)**: En lugar de aleatoriedad pura, el algoritmo recalcula en vivo las probabilidades de aparición de cada nota en base a tus fallos (clics incorrectos y tiempo agotado) y al tiempo de reacción necesario para encontrarlas. Las notas que más te cuestan aparecen con mayor frecuencia hasta que las dominas, reduciendo su peso conforme respondes con fluidez.
 - 🌐 **Soporte Multiidioma (i18n)**: Totalmente disponible en dos idiomas (**Español e Inglés**). Selector integrado en la barra superior para alternar en caliente sin reiniciar la app.
 - 🎧 **Detección de tono por micrófono**: Análisis de frecuencia fundamental en tiempo real con filtrado de ruido y octavas.
 - 🎨 **Diapasón interactivo detallado**: Cuerdas con grosor calibrado, cejuela, trastes proporcionales e inlays dobles en el traste 12.
 - 🔊 **Audio de referencia sintético**: Generación de onda con armónicos acústicos para entrenar el oído.
-- ⚙️ **Configuración flexible**: Selección de cuerda única o aleatoria, inclusión de sostenidos (`#`), temporizador personalizable de 2 a 30 segundos y rangos de trastes.
-- 📈 **Estadísticas de sesión**: Contador de aciertos, porcentaje de precisión, racha actual y mejor récord.
+- ⚙️ **Configuración flexible**: Selección de cuerda única o aleatoria, inclusión de sostenidos (`#`), temporizador personalizable de 2 a 30 segundos, rangos de trastes y activación de práctica adaptativa.
+- 📈 **Estadísticas de sesión**: Contador de aciertos, fallos, porcentaje de precisión, racha actual, mejor récord y nota foco de dificultad.
 
 ---
 

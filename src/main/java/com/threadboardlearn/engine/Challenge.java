@@ -12,8 +12,14 @@ public record Challenge(
         Note targetNote,
         GuitarString targetString,
         List<Integer> validFrets,
-        long startTimeMs
+        long startTimeMs,
+        boolean isFocus,
+        double selectionProbability
 ) {
+    public Challenge(Note targetNote, GuitarString targetString, List<Integer> validFrets, long startTimeMs) {
+        this(targetNote, targetString, validFrets, startTimeMs, false, 0.0);
+    }
+
     public boolean isValidFret(GuitarString string, int fret) {
         return this.targetString == string && validFrets.contains(fret);
     }

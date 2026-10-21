@@ -17,6 +17,7 @@ public class ChallengeDisplayPanel extends JPanel {
     private final JLabel noteLabel = new JLabel("—", SwingConstants.CENTER);
     private final JLabel stringLabel = new JLabel("", SwingConstants.CENTER);
     private final JLabel statusLabel = new JLabel(" ", SwingConstants.CENTER);
+    private final JLabel focusBadgeLabel = new JLabel(" ", SwingConstants.CENTER);
     private final JProgressBar timerProgressBar = new JProgressBar(0, 1000);
     private final JButton replaySoundButton = new JButton();
 
@@ -37,7 +38,10 @@ public class ChallengeDisplayPanel extends JPanel {
         noteCard.setBackground(new Color(35, 38, 44));
         noteCard.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(60, 65, 75), 1, true),
-                BorderFactory.createEmptyBorder(10, 25, 10, 25)));
+                BorderFactory.createEmptyBorder(8, 25, 10, 25)));
+
+        focusBadgeLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+        focusBadgeLabel.setForeground(new Color(255, 167, 38)); // Ámbar dorado
 
         noteLabel.setFont(new Font("SansSerif", Font.BOLD, 68));
         noteLabel.setForeground(new Color(255, 193, 7)); // Color dorado ámbar
@@ -48,6 +52,7 @@ public class ChallengeDisplayPanel extends JPanel {
         statusLabel.setFont(new Font("SansSerif", Font.BOLD, 15));
         statusLabel.setForeground(new Color(150, 160, 175));
 
+        noteCard.add(focusBadgeLabel, BorderLayout.NORTH);
         noteCard.add(noteLabel, BorderLayout.CENTER);
 
         JPanel infoSubPanel = new JPanel(new GridLayout(2, 1, 4, 4));
@@ -89,6 +94,14 @@ public class ChallengeDisplayPanel extends JPanel {
     public void showChallenge(Challenge challenge) {
         this.currentChallenge = challenge;
         this.currentState = State.IN_PROGRESS;
+
+        if (challenge.isFocus()) {
+            int probPercent = (int) Math.round(challenge.selectionProbability() * 100.0);
+            focusBadgeLabel.setText(I18n.get("challenge.focus_badge", probPercent));
+            focusBadgeLabel.setVisible(true);
+        } else {
+            focusBadgeLabel.setText(" ");
+        }
 
         noteLabel.setText(challenge.targetNote().getName());
         noteLabel.setForeground(new Color(255, 193, 7));
@@ -152,6 +165,7 @@ public class ChallengeDisplayPanel extends JPanel {
         this.currentState = State.INITIAL;
         this.currentChallenge = null;
 
+        focusBadgeLabel.setText(" ");
         noteLabel.setText("—");
         noteLabel.setForeground(new Color(255, 193, 7));
         stringLabel.setText(I18n.get("challenge.reset_instruction"));
@@ -163,6 +177,13 @@ public class ChallengeDisplayPanel extends JPanel {
 
     public void updateI18n() {
         replaySoundButton.setText(I18n.get("challenge.hear_note"));
+
+        if (currentChallenge != null && currentChallenge.isFocus()) {
+            int probPercent = (int) Math.round(currentChallenge.selectionProbability() * 100.0);
+            focusBadgeLabel.setText(I18n.get("challenge.focus_badge", probPercent));
+        } else {
+            focusBadgeLabel.setText(" ");
+        }
 
         switch (currentState) {
             case INITIAL -> {

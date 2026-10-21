@@ -18,6 +18,7 @@ public class TrainingConfig {
     private double micSensitivity;       // Umbral de sensibilidad / noise gate para el micro (RMS)
     private boolean matchExactOctave;    // true = exige la frecuencia y octava de la cuerda de guitarra
     private double minConfidence;        // Confianza mínima del detector (0.0 a 1.0)
+    private boolean adaptiveLearning;    // true = Selección probabilística ponderada según fallos y tiempos
 
     public TrainingConfig() {
         this.selectedString = null; // Todas las cuerdas
@@ -29,6 +30,7 @@ public class TrainingConfig {
         this.micSensitivity = 0.045; // Puerta de ruido para ignorar voces de fondo
         this.matchExactOctave = true; // Exigir octava real de la cuerda
         this.minConfidence = 0.75;
+        this.adaptiveLearning = true; // Activo por defecto para optimizar el aprendizaje
     }
 
     public boolean isAllStrings() {

@@ -240,7 +240,9 @@ public class MainFrame extends JFrame implements GameEventListener {
 
     @Override
     public void onStatsUpdated(TrainingStats stats) {
-        statusBar.updateStats(stats);
+        com.threadboardlearn.model.Note focus = session.getAdaptiveEngine().getMostChallengingNote(session.getAvailableNotes());
+        double prob = focus != null ? session.getAdaptiveEngine().getProbability(focus, session.getAvailableNotes()) : 0.0;
+        statusBar.updateStats(stats, focus, prob);
     }
 
     @Override

@@ -20,9 +20,12 @@ public class StatusBar extends JPanel {
     private final JLabel bestStreakLabel = new JLabel();
     private final JLabel accuracyLabel = new JLabel();
     private final JLabel avgTimeLabel = new JLabel();
+    private final JLabel focusLabel = new JLabel();
 
     private TrainingStats lastStats;
     private PitchDetectionResult lastPitchResult;
+    private com.threadboardlearn.model.Note lastFocusNote;
+    private double lastFocusProbability;
 
     public StatusBar() {
         setLayout(new BorderLayout(15, 0));
@@ -67,10 +70,14 @@ public class StatusBar extends JPanel {
         avgTimeLabel.setFont(statsFont);
         avgTimeLabel.setForeground(new Color(155, 89, 182));
 
+        focusLabel.setFont(statsFont);
+        focusLabel.setForeground(new Color(230, 126, 34)); // Naranja cálido adaptativo
+
         statsPanel.add(streakLabel);
         statsPanel.add(bestStreakLabel);
         statsPanel.add(accuracyLabel);
         statsPanel.add(avgTimeLabel);
+        statsPanel.add(focusLabel);
 
         add(micPanel, BorderLayout.WEST);
         add(statsPanel, BorderLayout.EAST);
@@ -110,8 +117,10 @@ public class StatusBar extends JPanel {
         }
     }
 
-    public void updateStats(TrainingStats stats) {
+    public void updateStats(TrainingStats stats, com.threadboardlearn.model.Note focusNote, double focusProbability) {
         this.lastStats = stats;
+        this.lastFocusNote = focusNote;
+        this.lastFocusProbability = focusProbability;
         if (stats == null) return;
 
         streakLabel.setText(I18n.get("status.streak", stats.getCurrentStreak()));
@@ -122,6 +131,19 @@ public class StatusBar extends JPanel {
         } else {
             avgTimeLabel.setText(I18n.get("status.avg_time_empty"));
         }
+
+        if (focusNote != null) {
+            int probPercent = (int) Math.round(focusProbability * 100.0);
+            focusLabel.setText(I18n.get("status.focus_note", focusNote.getName(), probPercent));
+            focusLabel.setToolTipText(I18n.get("status.focus_tooltip", focusNote.getName()));
+        } else {
+            focusLabel.setText(I18n.get("status.focus_none"));
+            focusLabel.setToolTipText(null);
+        }
+    }
+
+    public void updateStats(TrainingStats stats) {
+        updateStats(stats, lastFocusNote, lastFocusProbability);
     }
 
     public void updateI18n() {
@@ -134,12 +156,13 @@ public class StatusBar extends JPanel {
         }
 
         if (lastStats != null) {
-            updateStats(lastStats);
+            updateStats(lastStats, lastFocusNote, lastFocusProbability);
         } else {
             streakLabel.setText(I18n.get("status.streak", 0));
             bestStreakLabel.setText(I18n.get("status.best_streak", 0));
             accuracyLabel.setText(I18n.get("status.accuracy", 0, 0, 0));
             avgTimeLabel.setText(I18n.get("status.avg_time_empty"));
+            focusLabel.setText(I18n.get("status.focus_none"));
         }
     }
 }

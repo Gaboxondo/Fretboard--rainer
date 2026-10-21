@@ -23,6 +23,7 @@ public class ControlPanel extends JPanel {
 
     private final JCheckBox exactOctaveCheckBox = new JCheckBox();
     private final JSlider noiseGateSlider = new JSlider(10, 100, 45); // 0.010 a 0.100 RMS
+    private final JCheckBox adaptiveCheckBox = new JCheckBox();
 
     private final JLabel strLbl = new JLabel();
     private final JLabel timeLbl = new JLabel();
@@ -49,8 +50,8 @@ public class ControlPanel extends JPanel {
                 ""
         ));
 
-        // Grid con 4 filas y 2 columnas de opciones
-        JPanel optionsGrid = new JPanel(new GridLayout(4, 2, 12, 6));
+        // Grid con 5 filas y 2 columnas de opciones
+        JPanel optionsGrid = new JPanel(new GridLayout(5, 2, 12, 5));
         optionsGrid.setOpaque(false);
         optionsGrid.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
 
@@ -92,6 +93,12 @@ public class ControlPanel extends JPanel {
         noiseGatePanel.add(noiseGateSlider, BorderLayout.CENTER);
         optionsGrid.add(noiseGatePanel);
 
+        // Fila 5: Práctica adaptativa inteligente
+        optionsGrid.add(adaptiveCheckBox);
+        JPanel emptyPanel = new JPanel();
+        emptyPanel.setOpaque(false);
+        optionsGrid.add(emptyPanel);
+
         // Panel de acciones (Iniciar / Siguiente)
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
         actionPanel.setOpaque(false);
@@ -120,6 +127,7 @@ public class ControlPanel extends JPanel {
         playAudioCheckBox.setSelected(true);
         micEnabledCheckBox.setSelected(true);
         exactOctaveCheckBox.setSelected(true);
+        adaptiveCheckBox.setSelected(true);
         timeLimitComboBox.setSelectedIndex(1); // 5 segundos
     }
 
@@ -137,6 +145,11 @@ public class ControlPanel extends JPanel {
         sharpsCheckBox.addActionListener(e -> {
             if (updatingI18n) return;
             config.setIncludeSharps(sharpsCheckBox.isSelected());
+        });
+
+        adaptiveCheckBox.addActionListener(e -> {
+            if (updatingI18n) return;
+            config.setAdaptiveLearning(adaptiveCheckBox.isSelected());
         });
 
         timeLimitComboBox.addActionListener(e -> {
@@ -222,6 +235,7 @@ public class ControlPanel extends JPanel {
     private void setOptionsEnabled(boolean enabled) {
         stringComboBox.setEnabled(enabled);
         sharpsCheckBox.setEnabled(enabled);
+        adaptiveCheckBox.setEnabled(enabled);
         timeLimitComboBox.setEnabled(enabled);
         maxFretComboBox.setEnabled(enabled);
     }
@@ -243,6 +257,8 @@ public class ControlPanel extends JPanel {
             playAudioCheckBox.setText(I18n.get("control.play_audio"));
             micEnabledCheckBox.setText(I18n.get("control.mic_enabled"));
             exactOctaveCheckBox.setText(I18n.get("control.exact_octave"));
+            adaptiveCheckBox.setText(I18n.get("control.adaptive"));
+            adaptiveCheckBox.setToolTipText(I18n.get("control.adaptive_tooltip"));
 
             gateLbl.setText(I18n.get("control.noise_gate"));
             gateLbl.setToolTipText(I18n.get("control.noise_gate_tooltip"));

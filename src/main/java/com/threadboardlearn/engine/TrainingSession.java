@@ -30,6 +30,8 @@ public class TrainingSession {
     private final MicrophoneCapture micCapture;
     @Getter
     private final TrainingStats stats = new TrainingStats();
+    @Getter
+    private final AdaptiveLearningEngine adaptiveEngine = new AdaptiveLearningEngine();
     private final Random random = new Random();
 
     @Setter
@@ -111,17 +113,24 @@ public class TrainingSession {
             targetString = config.getSelectedString();
         }
 
-        // 2. Seleccionar Nota (respetando sharps y evitando repetir la misma nota seguida)
-        List<Note> availableNotes = config.isIncludeSharps() ? Note.getAllNotes() : Note.getNaturalNotes();
+        // 2. Seleccionar Nota (con probabilidad ponderada adaptativa o aleatorio uniforme)
+        List<Note> availableNotes = getAvailableNotes();
         Note targetNote;
-        do {
-            targetNote = availableNotes.get(random.nextInt(availableNotes.size()));
-        } while (availableNotes.size() > 1 && targetNote == lastNote);
+        if (config.isAdaptiveLearning()) {
+            targetNote = adaptiveEngine.selectNextNote(availableNotes, lastNote, random);
+        } else {
+            do {
+                targetNote = availableNotes.get(random.nextInt(availableNotes.size()));
+            } while (availableNotes.size() > 1 && targetNote == lastNote);
+        }
         lastNote = targetNote;
 
-        // 3. Obtener trastes válidos en la cuerda
+        // 3. Obtener trastes válidos en la cuerda y metadata del reto adaptativo
         List<Integer> validFrets = targetString.findFretsForNote(targetNote, config.getMaxFret());
-        currentChallenge = new Challenge(targetNote, targetString, validFrets, System.currentTimeMillis());
+        boolean isFocus = config.isAdaptiveLearning() && adaptiveEngine.isFocusNote(targetNote, availableNotes);
+        double probability = config.isAdaptiveLearning() ? adaptiveEngine.getProbability(targetNote, availableNotes) : (1.0 / availableNotes.size());
+
+        currentChallenge = new Challenge(targetNote, targetString, validFrets, System.currentTimeMillis(), isFocus, probability);
 
         // 4. Notificar a la UI
         Challenge ch = currentChallenge;
@@ -159,7 +168,17 @@ public class TrainingSession {
             handleSuccess();
             return true;
         } else {
-            // Nota incorrecta: reproducir la nota que el usuario ha tocado para su oído
+            // Nota incorrecta: registrar fallo en el motor adaptativo y estadísticas
+            if (config.isAdaptiveLearning()) {
+                adaptiveEngine.recordMistake(currentChallenge.targetNote());
+            }
+            stats.recordMistake();
+
+            if (listener != null) {
+                SwingUtilities.invokeLater(() -> listener.onStatsUpdated(stats));
+            }
+
+            // Reproducir la nota que el usuario ha tocado para su oído
             audioPlayer.playGuitarNote(string, fret);
             return false;
         }
@@ -236,6 +255,9 @@ public class TrainingSession {
 
         long reactionTime = System.currentTimeMillis() - currentChallenge.startTimeMs();
         stats.recordSuccess(reactionTime);
+        if (config.isAdaptiveLearning()) {
+            adaptiveEngine.recordSuccess(currentChallenge.targetNote(), reactionTime);
+        }
         audioPlayer.playSuccessSound();
 
         Challenge ch = currentChallenge;
@@ -255,6 +277,9 @@ public class TrainingSession {
         stopTimer();
 
         stats.recordTimeout();
+        if (config.isAdaptiveLearning()) {
+            adaptiveEngine.recordTimeout(currentChallenge.targetNote());
+        }
         audioPlayer.playFailureSound();
 
         Challenge ch = currentChallenge;
@@ -267,6 +292,10 @@ public class TrainingSession {
 
         // Pausa breve para que el usuario vea la solución antes del siguiente reto
         timerScheduler.schedule(this::nextChallenge, 1400, TimeUnit.MILLISECONDS);
+    }
+
+    public List<Note> getAvailableNotes() {
+        return config.isIncludeSharps() ? Note.getAllNotes() : Note.getNaturalNotes();
     }
 
     private void startTimer() {
