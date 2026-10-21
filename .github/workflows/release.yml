@@ -1,0 +1,98 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: '¿Crear una Release en GitHub con los archivos adjuntos?'
+        required: true
+        type: boolean
+        default: true
+      release_tag:
+        description: 'Nombre del Tag / Versión (ej: v1.0.0). Requerido si creas Release manual.'
+        required: false
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build, Test & Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Build and Test with Maven
+        run: mvn -B clean package
+
+      - name: Prepare release files
+        id: prep
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "PROJECT_VERSION=$VERSION" >> $GITHUB_ENV
+          
+          # Copiar JAR con nombre limpio y versionado
+          mkdir -p dist
+          cp target/fretboard-trainer-${VERSION}.jar dist/fretboard-trainer-${VERSION}.jar
+          cp target/fretboard-trainer-${VERSION}.jar dist/fretboard-trainer.jar
+          
+          # Crear lanzador batch para el paquete zip
+          mkdir -p dist/bundle
+          cp dist/fretboard-trainer.jar dist/bundle/
+          cat << 'EOF' > dist/bundle/run.bat
+          @echo off
+          title Fretboard Trainer
+          echo Iniciando Fretboard Trainer...
+          java -jar fretboard-trainer.jar
+          if %ERRORLEVEL% NEQ 0 (
+              echo.
+              echo Error al iniciar la aplicacion. Asegurate de tener Java 21 instalado.
+              pause
+          )
+          EOF
+          
+          # Empaquetar zip
+          cd dist/bundle
+          zip -r ../fretboard-trainer-${VERSION}-windows.zip ./*
+          cd ../..
+
+      - name: Upload Artifacts to GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: fretboard-trainer-${{ env.PROJECT_VERSION }}
+          path: |
+            dist/*.jar
+            dist/*.zip
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release == true)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || inputs.release_tag }}
+          name: Fretboard Trainer ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || inputs.release_tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/fretboard-trainer-${{ env.PROJECT_VERSION }}.jar
+            dist/fretboard-trainer-${{ env.PROJECT_VERSION }}-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
