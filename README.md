@@ -1,119 +1,119 @@
 # Guitar Fretboard Trainer (ThreadBoardLearn) 🎸
 
-Aplicación de escritorio en **Java 21** y **Maven** para el entrenamiento y memorización interactiva de las notas en el diapasón de la guitarra eléctrica/acústica. Inspirada en métodos de aprendizaje modernos como [FaChords Guitar Fretboard Notes](https://www.fachords.com/guitar-fretboard-notes/).
+Desktop application built with **Java 21** and **Maven** for interactive training and memorization of notes on the electric and acoustic guitar fretboard. Inspired by modern fretboard learning methods like [FaChords Guitar Fretboard Notes](https://www.fachords.com/guitar-fretboard-notes/).
 
 ---
 
-## 📋 Resumen del Proyecto
+## 📋 Project Overview
 
-El objetivo es permitir a guitarristas de cualquier nivel dominar las notas en el diapasón de forma ágil y gamificada:
-1. La aplicación presenta un reto aleatorio: una **nota objetivo** (ej. `C`, `F#`, etc.) y una **cuerda específica** (o la cuerda fijada en la configuración).
-2. Se reproduce acústicamente el sonido de la nota de referencia.
-3. El usuario dispone de **X segundos** configurables para tocar la nota correcta en su guitarra real.
-4. La aplicación escucha a través del **micrófono del ordenador** mediante procesamiento de señal y detección de tono en tiempo real (*pitch detection*). Si detecta la frecuencia correcta, valida el acierto y avanza a la siguiente nota aleatoria.
-5. También permite responder de forma interactiva haciendo clic directamente sobre el diapasón visual en la pantalla.
+The goal is to allow guitarists of any skill level to master fretboard notes in an agile, gamified way:
+1. The application presents a random challenge: a **target note** (e.g. `C`, `F#`, etc.) and a **target string** (or the fixed string chosen in settings).
+2. The reference note tone is played acoustically.
+3. The user has a configurable **X seconds** countdown timer to play the correct note on their real guitar.
+4. The application listens through the **computer microphone** using real-time digital signal processing (DSP) and pitch detection. When the correct frequency is detected, it validates the hit and advances to the next challenge.
+5. It also allows responding interactively by clicking directly on the visual fretboard on screen.
 
 ---
 
-## 🎵 Fundamentos Musicales y Reglas del Sistema
+## 🎵 Musical Foundations and System Rules
 
-### 1. Sistema de Notas (Notación Anglosajona / Cifrado Americano)
-- **Notas naturales**: `A`, `B`, `C`, `D`, `E`, `F`, `G`
-- **Sostenidos (#)**: `A#`, `C#`, `D#`, `F#`, `G#`
-- **Regla de semitonos naturales**: Entre `B` y `C`, y entre `E` y `F` hay medio tono (semitono diatónico natural), por lo que **no existen `B#` ni `E#`** en la escala de trabajo estándar.
-- **Total de semitonos cromáticos (12)**:
+### 1. Note System (Standard Western / Anglo-Saxon Notation)
+- **Natural notes**: `A`, `B`, `C`, `D`, `E`, `F`, `G`
+- **Sharps (#)**: `A#`, `C#`, `D#`, `F#`, `G#`
+- **Natural semitone rule**: Between `B` and `C`, and between `E` and `F`, there is a half step (natural diatonic semitone), so **there are no `B#` or `E#`** in the standard working scale.
+- **Total chromatic semitones (12)**:
   $$\text{C} \rightarrow \text{C}\# \rightarrow \text{D} \rightarrow \text{D}\# \rightarrow \text{E} \rightarrow \text{F} \rightarrow \text{F}\# \rightarrow \text{G} \rightarrow \text{G}\# \rightarrow \text{A} \rightarrow \text{A}\# \rightarrow \text{B}$$
 
-### 2. Afinación Estándar de Guitarra (6 Cuerdas)
-De más gruesa (grave) a más fina (aguda):
-| Cuerda | Nota al aire | Frecuencia fundamental ($f_0$) | Notación científica |
+### 2. Standard Guitar Tuning (6 Strings)
+From lowest pitch (thickest) to highest pitch (thinnest):
+| String | Open Note | Fundamental Frequency ($f_0$) | Scientific Pitch Notation |
 | :---: | :---: | :---: | :---: |
-| **6ª** | **E** (Mi grave) | ~82.41 Hz | E2 |
-| **5ª** | **A** (La) | ~110.00 Hz | A2 |
-| **4ª** | **D** (Re) | ~146.83 Hz | D3 |
-| **3ª** | **G** (Sol) | ~196.00 Hz | G3 |
-| **2ª** | **B** (Si) | ~246.94 Hz | B3 |
-| **1ª** | **E** (Mi agudo) | ~329.63 Hz | E4 |
+| **6th** | **E** (Low E) | ~82.41 Hz | E2 |
+| **5th** | **A** | ~110.00 Hz | A2 |
+| **4th** | **D** | ~146.83 Hz | D3 |
+| **3rd** | **G** | ~196.00 Hz | G3 |
+| **2nd** | **B** | ~246.94 Hz | B3 |
+| **1st** | **E** (High E) | ~329.63 Hz | E4 |
 
-Cada traste incrementa la frecuencia en un semitono:
-$$f = f_{\text{cuerda}} \times 2^{\frac{\text{traste}}{12}}$$
-
----
-
-## ⚙️ Niveles y Opciones Configurables
-
-1. **Selección de Cuerda**:
-   - Cuerda fija individual: Practicar exclusivamente la 6ª, 5ª, 4ª, 3ª, 2ª o 1ª cuerda.
-   - Modo "Todas las cuerdas": En cada ronda se escoge una cuerda al azar junto con la nota.
-2. **Inclusión de Alteraciones (Sharps #)**:
-   - *Desactivado*: Solo notas naturales (`A, B, C, D, E, F, G`).
-   - *Activado*: Se incluyen también los sostenidos (`A#, C#, D#, F#, G#`).
-3. **Tiempo de Respuesta (Temporizador)**:
-   - Configurable de 2 a 30 segundos (o modo sin temporizador / relajado).
-   - Barra de progreso visual con cuenta atrás.
-4. **Rango de Trastes de Entrenamiento**:
-   - Trastes 0 a 12 (rango estándar con puntos dobles en el 12).
-   - Filtros adicionales: Trastes abiertos (0–5), medios (5–9), agudos (9–12), o completo hasta el 15/24.
-5. **Entrada de Usuario**:
-   - **Micrófono (Pitch Detection)**: Escucha el instrumento real vía la tarjeta de sonido por defecto o seleccionada.
-   - **Diapasón Interactivo**: Permite hacer clic con el ratón sobre el traste y cuerda correspondiente como alternativa o complemento.
-6. **Audio de Referencia**:
-   - Activación/desactivación de la reproducción del tono objetivo al inicio de cada ronda.
+Each fret increases the frequency by one semitone:
+$$f = f_{\text{string}} \times 2^{\frac{\text{fret}}{12}}$$
 
 ---
 
-## 🏗️ Arquitectura Técnica de la Aplicación
+## ⚙️ Configurable Options and Levels
 
-La aplicación se estructura en capas desacopladas aprovechando las características modernas de **Java 21**:
+1. **String Selection**:
+   - Single fixed string: Practice exclusively on the 6th, 5th, 4th, 3rd, 2nd, or 1st string.
+   - "All strings" mode: In each round, a string is chosen at random along with the note.
+2. **Include Accidentals (Sharps #)**:
+   - *Disabled*: Natural notes only (`A, B, C, D, E, F, G`).
+   - *Enabled*: Sharps are also included (`A#, C#, D#, F#, G#`).
+3. **Response Time (Timer)**:
+   - Configurable from 2 to 30 seconds (or untimed / relaxed mode).
+   - Visual countdown progress bar.
+4. **Training Fret Range**:
+   - Frets 0 to 12 (standard range with double fret markers at the 12th fret).
+   - Additional filters: Open frets (0–5), middle (5–9), high (9–12), or full neck up to 15/24.
+5. **User Input**:
+   - **Microphone (Pitch Detection)**: Listens to the real instrument via default or selected audio input device.
+   - **Interactive Fretboard**: Allows clicking with the mouse on the corresponding fret and string as an alternative or complement.
+6. **Reference Audio**:
+   - Enable or disable acoustic reference tone playback at the start of each round.
+
+---
+
+## 🏗️ Technical Architecture
+
+The application is structured into decoupled layers leveraging modern **Java 21** features:
 
 ```
 com.threadboardlearn
-├── App.java                      # Punto de entrada Swing con FlatLaf Dark Theme
+├── App.java                      # Swing entry point with FlatLaf Dark Theme
 ├── model/
-│   ├── Note.java                 # Enum o Record de notas (nombre, semitono, alteraciones)
-│   ├── GuitarString.java         # Definición de cuerdas (índice 1-6, afinación base)
-│   ├── FretboardPosition.java    # Par (cuerda, traste, nota resultante, frecuencia Hz)
-│   └── TrainingSessionConfig.java# Ajustes (cuerda fija o all, con sharps, tiempo, etc.)
+│   ├── Note.java                 # Note enum / record (name, semitone, accidentals)
+│   ├── GuitarString.java         # Guitar string definition (index 1-6, base tuning)
+│   ├── FretboardPosition.java    # Pair (string, fret, resulting note, Hz frequency)
+│   └── TrainingSessionConfig.java# Settings (fixed string or all, with sharps, timer, etc.)
 ├── audio/
-│   ├── AudioPlayer.java          # Síntesis de tonos / Audio sintetizado de referencia
-│   └── MicrophoneCapture.java    # Captura PCM continua mediante javax.sound.sampled (TargetDataLine)
+│   ├── AudioPlayer.java          # Tone synthesis / Acoustic synthesized reference audio
+│   └── MicrophoneCapture.java    # Continuous PCM capture using javax.sound.sampled (TargetDataLine)
 ├── dsp/
-│   ├── PitchDetector.java        # Interfaz de detección de tono
-│   └── YinPitchDetector.java     # Implementación del algoritmo YIN / Autocorrelación para guitarra
+│   ├── PitchDetector.java        # Pitch detection interface
+│   └── YinPitchDetector.java     # YIN algorithm / Autocorrelation implementation for guitar
 ├── engine/
-│   ├── GameSession.java          # Lógica de juego, generación aleatoria, temporizadores y eventos
-│   └── GameEventListener.java    # Notificaciones a la UI (nueva nota, tiempo, acierto, error)
+│   ├── GameSession.java          # Game session logic, random generator, timers, and events
+│   └── GameEventListener.java    # UI notifications (new note, timer tick, hit, miss)
 └── ui/
-    ├── MainFrame.java            # Ventana principal
-    ├── ConfigPanel.java          # Panel de configuración de niveles, cuerdas, tiempo, micrófono
-    ├── ChallengeDisplayPanel.java# Letra gigante de la nota, cuerda objetivo y cronómetro
-    └── FretboardView.java        # Componente gráfico personalizado con dibujo del diapasón
+    ├── MainFrame.java            # Main application window
+    ├── ConfigPanel.java          # Configuration panel for levels, strings, timer, microphone
+    ├── ChallengeDisplayPanel.java# Prominent note letter, target string, and countdown timer
+    └── FretboardView.java        # Custom GUI component rendering the guitar fretboard
 ```
 
-### Tecnologías Clave:
-- **Java 21 LTS**: Records, switch expressions exhaustivos, Virtual Threads para el procesamiento de audio continuo sin bloquear el Event Dispatch Thread (EDT) de Swing.
-- **Project Lombok**: Reducción de código repetitivo mediante `@Getter` y `@Setter` en modelos y motores.
-- **FlatLaf (Dark / Modern UI)**: Aspecto visual profesional para aplicaciones de escritorio.
+### Key Technologies:
+- **Java 21 LTS**: Records, exhaustive pattern matching/switch expressions, Virtual Threads for continuous audio processing without blocking Swing's Event Dispatch Thread (EDT).
+- **Project Lombok**: Boilerplate reduction using `@Getter` and `@Setter` on models and engines.
+- **FlatLaf (Dark / Modern UI)**: Professional visual theme for modern desktop applications.
 - **Java Sound API (`javax.sound.sampled`)**:
-  - `TargetDataLine` para captura de audio PCM (44.1 kHz, 16-bit mono).
-  - `SourceDataLine` para reproducción de ondas sinusoidales con armónicos y envolvente tipo guitarra acústica.
-- **Algoritmo YIN / Autocorrelación**:
-  - Especialmente optimizado para el rango de guitarra (~70 Hz a ~1000 Hz).
-  - Umbral de claridad/energía para descartar ruido ambiental.
+  - `TargetDataLine` for PCM audio capture (44.1 kHz, 16-bit mono).
+  - `SourceDataLine` for synthesizing sinusoidal waves with acoustic guitar-like harmonics and decay envelopes.
+- **YIN Algorithm / Autocorrelation**:
+  - Tuned specifically for guitar pitch range (~70 Hz to ~1000 Hz).
+  - Clarity and energy thresholds to discard ambient background noise.
 
 ---
 
-## 🚀 Requisitos y Ejecución
+## 🚀 Requirements and Getting Started
 
-### Requisitos:
-- **Windows 10 / 11**
-- **JDK 21** (instalado en el sistema, ej. Amazon Corretto 21)
+### Requirements:
+- **Windows 10 / 11** (or macOS / Linux)
+- **JDK 21** (e.g. Amazon Corretto 21, Eclipse Temurin 21)
 - **Apache Maven 3.8+**
-- Micrófono o interfaz de audio (opcional pero recomendado para el modo escucha).
+- Microphone or audio interface (optional, but recommended for listening mode).
 
-### Compilación y Ejecución:
+### Building and Running:
 
-1. **Verificar o configurar Java 21 en la terminal**:
+1. **Verify or configure Java 21 in your terminal**:
    ```powershell
    $env:JAVA_HOME = "C:\Devtools\jdks\Corretto21"
    $env:Path = "C:\Devtools\jdks\Corretto21\bin;$env:Path"
@@ -121,28 +121,28 @@ com.threadboardlearn
    mvn -v
    ```
 
-2. **Compilar el proyecto**:
+2. **Build the project**:
    ```powershell
    mvn clean package
    ```
 
-3. **Ejecutar la aplicación**:
+3. **Run the application**:
    ```powershell
    mvn exec:java -Dexec.mainClass="com.threadboardlearn.App"
-   # O ejecutar el JAR generado:
+   # Or run the generated Fat JAR:
    java -jar target/fretboard-trainer-1.0.0.jar
    ```
 
 ---
 
-## 📌 Historial de Decisiones y Estado
-- [x] Configuración base de `pom.xml` con Java 21, FlatLaf y plugins de Maven.
-- [x] Documento maestro de especificación y requerimientos (`README.md`).
-- [x] Implementación del modelo de dominio musical ([Note.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/model/Note.java), [GuitarString.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/model/GuitarString.java), [FretboardPosition.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/model/FretboardPosition.java)).
-- [x] Implementación de síntesis de audio para reproducir la nota con sonido de guitarra y feedback ([AudioPlayer.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/audio/AudioPlayer.java)).
-- [x] Implementación de captura de micrófono ([MicrophoneCapture.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/audio/MicrophoneCapture.java)) y algoritmo YIN ([YinPitchDetector.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/dsp/YinPitchDetector.java)).
-- [x] Diseño del motor de juego y retos aleatorios ([TrainingSession.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/engine/TrainingSession.java), [Challenge.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/engine/Challenge.java), [TrainingStats.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/engine/TrainingStats.java)).
-- [x] Componente gráfico de diapasón ([FretboardView.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/FretboardView.java)) con marcadores inlays, cuerdas proporcionales y detección interactiva por clic.
-- [x] Interfaz gráfica completa ([MainFrame.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/MainFrame.java), [ChallengeDisplayPanel.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/ChallengeDisplayPanel.java), [ControlPanel.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/ControlPanel.java), [StatusBar.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/StatusBar.java)).
-- [x] Pruebas unitarias automatizadas para notas, afinación de cuerdas y detección YIN (11 tests pasando).
-- [x] Empaquetado Fat JAR ejecutable y scripts de arranque directo (`run.bat`, `run.ps1`).
+## 📌 Project Status and Roadmap
+- [x] Base setup in `pom.xml` with Java 21, FlatLaf, and Maven plugins.
+- [x] Master specification and architecture documentation (`README.md`).
+- [x] Music domain model implementation ([Note.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/model/Note.java), [GuitarString.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/model/GuitarString.java), [FretboardPosition.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/model/FretboardPosition.java)).
+- [x] Audio synthesis implementation for acoustic reference tone and sound feedback ([AudioPlayer.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/audio/AudioPlayer.java)).
+- [x] Microphone capture ([MicrophoneCapture.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/audio/MicrophoneCapture.java)) and YIN pitch detection algorithm ([YinPitchDetector.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/dsp/YinPitchDetector.java)).
+- [x] Training session and randomized challenge engine ([TrainingSession.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/engine/TrainingSession.java), [Challenge.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/engine/Challenge.java), [TrainingStats.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/engine/TrainingStats.java)).
+- [x] Graphical fretboard component ([FretboardView.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/FretboardView.java)) featuring fret inlays, proportional string gauges, and interactive mouse-click detection.
+- [x] Complete graphical user interface ([MainFrame.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/MainFrame.java), [ChallengeDisplayPanel.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/ChallengeDisplayPanel.java), [ControlPanel.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/ControlPanel.java), [StatusBar.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/StatusBar.java)).
+- [x] Automated unit test suite for notes, string tuning, and YIN pitch detection (11 tests passing).
+- [x] Executable Fat JAR packaging and one-click launch scripts (`run.bat`, `run.ps1`).
