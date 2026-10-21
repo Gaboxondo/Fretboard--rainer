@@ -21,9 +21,9 @@ public class TrainingConfig {
     private boolean adaptiveLearning;    // true = Selección probabilística ponderada según fallos y tiempos
 
     public TrainingConfig() {
-        this.selectedString = null; // Todas las cuerdas
+        this.selectedString = GuitarString.STRING_6; // 6ª Cuerda (grave) por defecto
         this.includeSharps = false; // Solo naturales por defecto
-        this.timeLimitSeconds = 5;  // 5 segundos por defecto
+        this.timeLimitSeconds = 3;  // 3 segundos por defecto
         this.maxFret = 12;
         this.playReferenceAudio = true;
         this.microphoneEnabled = true;

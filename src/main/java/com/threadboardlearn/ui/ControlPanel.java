@@ -136,7 +136,22 @@ public class ControlPanel extends JPanel {
         micEnabledCheckBox.setSelected(true);
         exactOctaveCheckBox.setSelected(true);
         adaptiveCheckBox.setSelected(true);
-        timeLimitComboBox.setSelectedIndex(1); // 5 segundos
+        int defaultStringIdx = config.getSelectedString() != null ? config.getSelectedString().getNumber() : 6;
+        stringComboBox.setSelectedIndex(defaultStringIdx);
+        timeLimitComboBox.setSelectedIndex(getIndexForTimeLimit(config.getTimeLimitSeconds()));
+    }
+
+    private int getIndexForTimeLimit(int seconds) {
+        return switch (seconds) {
+            case 1 -> 0;
+            case 2 -> 1;
+            case 3 -> 2;
+            case 5 -> 3;
+            case 8 -> 4;
+            case 10 -> 5;
+            case 15 -> 6;
+            default -> 7; // Sin límite
+        };
     }
 
     private void setupListeners() {
@@ -164,11 +179,13 @@ public class ControlPanel extends JPanel {
             if (updatingI18n) return;
             int idx = timeLimitComboBox.getSelectedIndex();
             int seconds = switch (idx) {
-                case 0 -> 3;
-                case 1 -> 5;
-                case 2 -> 8;
-                case 3 -> 10;
-                case 4 -> 15;
+                case 0 -> 1;
+                case 1 -> 2;
+                case 2 -> 3;
+                case 3 -> 5;
+                case 4 -> 8;
+                case 5 -> 10;
+                case 6 -> 15;
                 default -> 0; // Sin límite
             };
             config.setTimeLimitSeconds(seconds);
@@ -292,11 +309,14 @@ public class ControlPanel extends JPanel {
             if (selectedString >= 0 && selectedString < stringComboBox.getItemCount()) {
                 stringComboBox.setSelectedIndex(selectedString);
             } else {
-                stringComboBox.setSelectedIndex(0);
+                int defaultIdx = config.getSelectedString() != null ? config.getSelectedString().getNumber() : 6;
+                stringComboBox.setSelectedIndex(defaultIdx);
             }
 
             int selectedTime = timeLimitComboBox.getSelectedIndex();
             timeLimitComboBox.removeAllItems();
+            timeLimitComboBox.addItem(I18n.get("control.time.1s"));
+            timeLimitComboBox.addItem(I18n.get("control.time.2s"));
             timeLimitComboBox.addItem(I18n.get("control.time.3s"));
             timeLimitComboBox.addItem(I18n.get("control.time.5s"));
             timeLimitComboBox.addItem(I18n.get("control.time.8s"));
@@ -306,7 +326,7 @@ public class ControlPanel extends JPanel {
             if (selectedTime >= 0 && selectedTime < timeLimitComboBox.getItemCount()) {
                 timeLimitComboBox.setSelectedIndex(selectedTime);
             } else {
-                timeLimitComboBox.setSelectedIndex(1);
+                timeLimitComboBox.setSelectedIndex(getIndexForTimeLimit(config.getTimeLimitSeconds()));
             }
 
             int selectedFret = maxFretComboBox.getSelectedIndex();
