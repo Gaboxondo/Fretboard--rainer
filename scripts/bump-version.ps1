@@ -96,13 +96,16 @@ $updatedPomContent = [regex]::Replace(
 Set-Content -Path pom.xml -Value $updatedPomContent -Encoding UTF8
 Write-Host "pom.xml actualizado a $newVersion"
 
-# 6. Actualizar README.md
-if (Test-Path README.md) {
-    $readme = Get-Content README.md -Raw
-    $readme = [regex]::Replace($readme, 'Release-v[0-9.]+-orange', "Release-v$newVersion-orange")
-    $readme = [regex]::Replace($readme, 'fretboard-trainer-[0-9.]+\.jar', "fretboard-trainer-$newVersion.jar")
-    Set-Content -Path README.md -Value $readme -Encoding UTF8
-    Write-Host "README.md actualizado a versión $newVersion"
+# 6. Actualizar README.md y docs/es/README.md
+$readmeFiles = @("README.md", "docs/es/README.md")
+foreach ($rPath in $readmeFiles) {
+    if (Test-Path $rPath) {
+        $readme = Get-Content $rPath -Raw
+        $readme = [regex]::Replace($readme, 'Release-v[0-9.]+-orange', "Release-v$newVersion-orange")
+        $readme = [regex]::Replace($readme, 'fretboard-trainer-[0-9.]+\.jar', "fretboard-trainer-$newVersion.jar")
+        Set-Content -Path $rPath -Value $readme -Encoding UTF8
+        Write-Host "$rPath actualizado a versión $newVersion"
+    }
 }
 
 # 7. Exportar a GitHub Output si estamos en un runner de GitHub Actions

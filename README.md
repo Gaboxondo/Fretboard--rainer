@@ -31,7 +31,7 @@
 
 <br/><br/>
 
-**Language:** [English](#english) • [Español](#español)
+**Language:** English • [Español (Spanish)](docs/es/README.md)
 
 <p align="center">
   <a href="#quick-download">📥 Download</a> •
@@ -258,40 +258,6 @@ flowchart TD
 - **`feature/<name>`** or **`feat/<name>`**: Increments the **second number (Minor)** (`1.0.0` ➔ `1.1.0`). Use for new functionalities, game modes, or UI enhancements.
 - **`bug/<name>`** or **`bugfix/<name>`**: Increments the **third number (Patch)** (`1.0.0` ➔ `1.0.1`). Use for bug fixes and corrective adjustments.
 - **`hotfix/<name>`**: Increments the **third number (Patch)** (`1.0.0` ➔ `1.0.1`). Use for urgent production fixes.
-
----
-
-<a id="español"></a>
-## 🇪🇸 Descripción en Español
-
-### 🎸 ¿Qué es Guitar Fretboard Trainer?
-**Guitar Fretboard Trainer** es una aplicación de escritorio desarrollada con **Java 21**, **FlatLaf Dark** y procesamiento digital de señales de audio en tiempo real (**DSP**). Su propósito es entrenar y acelerar la memorización visual y auditiva de las notas en el mástil de la guitarra.
-
-> **🌐 Disponible en Dos Idiomas**: La interfaz se encuentra disponible en **Español** e **Inglés**. Permite alternar de idioma al instante desde el selector desplegable de la barra superior sin reiniciar.
-
-Permite responder de dos formas complementarias:
-1. **Tocando tu guitarra real**: El micrófono capta la señal de audio y el algoritmo **YIN** reconoce la nota al instante.
-2. **Haciendo clic en el diapasón interactivo**: Marca el traste y cuerda correspondiente directamente en pantalla.
-
-### 📥 Descarga para Windows (Sin necesidad de instalar Java)
-1. Ve a la página de [Última Release en GitHub](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest).
-2. Descarga el archivo único **`FretboardTrainer-Setup.exe`** (instalador ligero de ~35 MB).
-3. Haz doble clic en el archivo: se instala en segundos en tu perfil de usuario (sin permisos de administrador requeridos) y te crea un acceso directo con el icono del mástil en tu **Escritorio** y **Menú Inicio**.
-4. ¡Doble clic al icono del escritorio y listo! No necesitas Java, ni terminal, ni copiar carpetas `app/` o `runtime/` a mano.
-*(También tienes disponible la versión portable en `.zip` por si prefieres no instalar nada).*
-
-### 📋 Características Principales
-- 🧠 **Motor de Práctica Adaptativa Inteligente (Probabilidad Ponderada)**: En lugar de aleatoriedad pura, el algoritmo recalcula en vivo las probabilidades de aparición de cada nota en base a tus fallos (clics incorrectos y tiempo agotado) y al tiempo de reacción necesario para encontrarlas. Las notas que más te cuestan aparecen con mayor frecuencia hasta que las dominas, reduciendo su peso conforme respondes con fluidez.
-- 📊 **Gráficos de Análisis de Fallos y Resumen de Sesión**:
-  - **Modo Cuerda Única**: Gráfica de barras con las notas más falladas en dicha cuerda, porcentaje de aciertos y tiempo de reacción medio.
-  - **Modo Todas las Cuerdas**: Comparativa gráfica entre las 6 cuerdas destacando automáticamente la cuerda con mayor índice de error y las notas más desafiantes.
-  - **Informe de Fin de Sesión**: Se abre automáticamente al pausar el entrenamiento (o mediante el botón `📊 Resultados`) con consejos pedagógicos inteligentes y métricas clave.
-- 🌐 **Soporte Multiidioma (i18n)**: Totalmente disponible en dos idiomas (**Español e Inglés**). Selector integrado en la barra superior para alternar en caliente sin reiniciar la app.
-- 🎧 **Detección de tono por micrófono**: Análisis de frecuencia fundamental en tiempo real con filtrado de ruido y octavas.
-- 🎨 **Diapasón interactivo detallado**: Cuerdas con grosor calibrado, cejuela, trastes proporcionales e inlays dobles en el traste 12.
-- 🔊 **Audio de referencia sintético**: Generación de onda con armónicos acústicos para entrenar el oído.
-- ⚙️ **Configuración flexible**: Selección de cuerda única o aleatoria, inclusión de sostenidos (`#`), temporizador personalizable de 2 a 30 segundos, rangos de trastes y activación de práctica adaptativa.
-- 📈 **Estadísticas de sesión**: Contador de aciertos, fallos, porcentaje de precisión, racha actual, mejor récord y nota foco de dificultad.
 
 ---
 
