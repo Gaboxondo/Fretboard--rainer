@@ -2,7 +2,6 @@ package com.threadboardlearn.ui;
 
 import com.threadboardlearn.engine.Challenge;
 import com.threadboardlearn.model.GuitarString;
-import com.threadboardlearn.model.Note;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,8 +12,10 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 
 /**
- * Componente gráfico interactivo que dibuja el diapasón de la guitarra con estilo premium.
- * Soporta clics interactivos para responder a los retos, marcadores de trastes (inlays),
+ * Componente gráfico interactivo que dibuja el diapasón de la guitarra con
+ * estilo premium.
+ * Soporta clics interactivos para responder a los retos, marcadores de trastes
+ * (inlays),
  * grosor de cuerdas proporcional y animaciones de acierto/fallo.
  */
 @SuppressWarnings("serial")
@@ -127,8 +128,7 @@ public class FretboardView extends JPanel {
         // 1. Dibujar madera del diapasón con degradado elegante
         GradientPaint woodGradient = new GradientPaint(
                 leftMargin, topMargin, FRETBOARD_WOOD_TOP,
-                leftMargin, topMargin + fretboardHeight, FRETBOARD_WOOD_BOTTOM
-        );
+                leftMargin, topMargin + fretboardHeight, FRETBOARD_WOOD_BOTTOM);
         g2.setPaint(woodGradient);
         g2.fillRoundRect(leftMargin, topMargin, fretboardWidth, fretboardHeight, 6, 6);
 
@@ -136,7 +136,8 @@ public class FretboardView extends JPanel {
         g2.setColor(new Color(80, 55, 40));
         g2.drawRoundRect(leftMargin, topMargin, fretboardWidth, fretboardHeight, 6, 6);
 
-        // 2. Calcular posiciones X de los trastes (escala logarítmica / decreciente natural de guitarra)
+        // 2. Calcular posiciones X de los trastes (escala logarítmica / decreciente
+        // natural de guitarra)
         int[] fretX = calculateFretPositions(leftMargin, fretboardWidth, maxFret);
 
         // 3. Dibujar Cejuela (Nut / Traste 0)
@@ -321,7 +322,8 @@ public class FretboardView extends JPanel {
     }
 
     private void handleMouseClick(int mouseX, int mouseY) {
-        if (onFretClicked == null) return;
+        if (onFretClicked == null)
+            return;
 
         int leftMargin = 75;
         int rightMargin = 30;
@@ -331,7 +333,8 @@ public class FretboardView extends JPanel {
         int fretboardWidth = getWidth() - leftMargin - rightMargin;
         int fretboardHeight = getHeight() - topMargin - bottomMargin;
 
-        if (fretboardWidth <= 0 || fretboardHeight <= 0) return;
+        if (fretboardWidth <= 0 || fretboardHeight <= 0)
+            return;
 
         double stringSpacing = (double) fretboardHeight / 5.0;
 
@@ -348,7 +351,8 @@ public class FretboardView extends JPanel {
             }
         }
 
-        if (closestStringNum == -1) return;
+        if (closestStringNum == -1)
+            return;
 
         // 2. Detectar traste
         int[] fretX = calculateFretPositions(leftMargin, fretboardWidth, maxFret);

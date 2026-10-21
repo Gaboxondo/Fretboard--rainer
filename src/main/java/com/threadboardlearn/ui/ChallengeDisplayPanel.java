@@ -1,14 +1,14 @@
 package com.threadboardlearn.ui;
 
 import com.threadboardlearn.engine.Challenge;
-import com.threadboardlearn.model.Note;
 
 import javax.swing.*;
 import java.awt.*;
 
 /**
  * Panel superior con la presentación visual del reto actual:
- * Nota objetivo en grande, cuerda donde buscarla, barra de tiempo regresiva y feedback.
+ * Nota objetivo en grande, cuerda donde buscarla, barra de tiempo regresiva y
+ * feedback.
  */
 @SuppressWarnings("serial")
 public class ChallengeDisplayPanel extends JPanel {
@@ -30,8 +30,7 @@ public class ChallengeDisplayPanel extends JPanel {
         noteCard.setBackground(new Color(35, 38, 44));
         noteCard.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(60, 65, 75), 1, true),
-                BorderFactory.createEmptyBorder(10, 25, 10, 25)
-        ));
+                BorderFactory.createEmptyBorder(10, 25, 10, 25)));
 
         noteLabel.setFont(new Font("SansSerif", Font.BOLD, 68));
         noteLabel.setForeground(new Color(255, 193, 7)); // Color dorado ámbar
@@ -105,7 +104,7 @@ public class ChallengeDisplayPanel extends JPanel {
         } else if (percentElapsed < 0.8) {
             timerProgressBar.setForeground(new Color(243, 156, 18)); // Amarillo
         } else {
-            timerProgressBar.setForeground(new Color(231, 76, 60));  // Rojo
+            timerProgressBar.setForeground(new Color(231, 76, 60)); // Rojo
         }
     }
 

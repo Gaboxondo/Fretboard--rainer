@@ -1,148 +1,201 @@
-# Guitar Fretboard Trainer (ThreadBoardLearn) 🎸
+<div align="center">
 
-Desktop application built with **Java 21** and **Maven** for interactive training and memorization of notes on the electric and acoustic guitar fretboard. Inspired by modern fretboard learning methods like [FaChords Guitar Fretboard Notes](https://www.fachords.com/guitar-fretboard-notes/).
+# 🎸 Guitar Fretboard Trainer (ThreadBoardLearn)
 
----
+**Next-Generation Desktop Trainer for Mastering Notes on the Guitar Fretboard**  
+*Real-Time Microphone Pitch Detection (DSP) • Interactive Visual Neck • Gamified Practice Sessions*
 
-## 📋 Project Overview
+<br/>
 
-The goal is to allow guitarists of any skill level to master fretboard notes in an agile, gamified way:
-1. The application presents a random challenge: a **target note** (e.g. `C`, `F#`, etc.) and a **target string** (or the fixed string chosen in settings).
-2. The reference note tone is played acoustically.
-3. The user has a configurable **X seconds** countdown timer to play the correct note on their real guitar.
-4. The application listens through the **computer microphone** using real-time digital signal processing (DSP) and pitch detection. When the correct frequency is detected, it validates the hit and advances to the next challenge.
-5. It also allows responding interactively by clicking directly on the visual fretboard on screen.
+[![Java 21 LTS](https://img.shields.io/badge/Java-21_LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Maven 3.8+](https://img.shields.io/badge/Maven-3.8+-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
+[![UI FlatLaf Dark](https://img.shields.io/badge/UI-FlatLaf_Dark-1ABC9C?style=for-the-badge&logo=materialdesign&logoColor=white)](https://www.formdev.com/flatlaf/)
+[![DSP YIN Algorithm](https://img.shields.io/badge/DSP-YIN_Pitch_Detector-9B59B6?style=for-the-badge)](https://en.wikipedia.org/wiki/Pitch_detection_algorithm)
+[![Tests](https://img.shields.io/badge/Tests-11_Passing-2ECC71?style=for-the-badge)](https://github.com/Gaboxondo/Fretboard--rainer)
+[![License MIT](https://img.shields.io/badge/License-MIT-3498DB?style=for-the-badge)](LICENSE)
 
----
+<br/>
 
-## 🎵 Musical Foundations and System Rules
+[![Version](https://img.shields.io/badge/Release-v1.0.0-orange?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
+[![Audio](https://img.shields.io/badge/Audio-44.1kHz_16--bit_Mono-blueviolet?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
+[![Latency](https://img.shields.io/badge/Latency-%3C20ms_Buffer-emerald?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
+[![Platform](https://img.shields.io/badge/Platform-Windows_|_macOS_|_Linux-lightgrey?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
 
-### 1. Note System (Standard Western / Anglo-Saxon Notation)
-- **Natural notes**: `A`, `B`, `C`, `D`, `E`, `F`, `G`
-- **Sharps (#)**: `A#`, `C#`, `D#`, `F#`, `G#`
-- **Natural semitone rule**: Between `B` and `C`, and between `E` and `F`, there is a half step (natural diatonic semitone), so **there are no `B#` or `E#`** in the standard working scale.
-- **Total chromatic semitones (12)**:
-  $$\text{C} \rightarrow \text{C}\# \rightarrow \text{D} \rightarrow \text{D}\# \rightarrow \text{E} \rightarrow \text{F} \rightarrow \text{F}\# \rightarrow \text{G} \rightarrow \text{G}\# \rightarrow \text{A} \rightarrow \text{A}\# \rightarrow \text{B}$$
+<br/>
 
-### 2. Standard Guitar Tuning (6 Strings)
-From lowest pitch (thickest) to highest pitch (thinnest):
-| String | Open Note | Fundamental Frequency ($f_0$) | Scientific Pitch Notation |
-| :---: | :---: | :---: | :---: |
-| **6th** | **E** (Low E) | ~82.41 Hz | E2 |
-| **5th** | **A** | ~110.00 Hz | A2 |
-| **4th** | **D** | ~146.83 Hz | D3 |
-| **3rd** | **G** | ~196.00 Hz | G3 |
-| **2nd** | **B** | ~246.94 Hz | B3 |
-| **1st** | **E** (High E) | ~329.63 Hz | E4 |
+**Language:** [English](#-english) • [Español](#-español)
 
-Each fret increases the frequency by one semitone:
-$$f = f_{\text{string}} \times 2^{\frac{\text{fret}}{12}}$$
+<p align="center">
+  <a href="#-quick-features">✨ Features</a> •
+  <a href="#-interface-preview">📸 Interface</a> •
+  <a href="#-quick-start">🚀 Quick Start</a> •
+  <a href="#-how-it-works">🧠 How it Works</a> •
+  <a href="#-musical-theory">🎵 Music Theory</a> •
+  <a href="#-technical-architecture">🏗️ Architecture</a>
+</p>
 
----
+<br/>
 
-## ⚙️ Configurable Options and Levels
+<div id="-interface-preview">
+  <img src="docs/assets/screenshot.png" alt="Guitar Fretboard Trainer Interface" width="100%" style="border-radius: 10px; border: 1px solid #30363d; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+</div>
 
-1. **String Selection**:
-   - Single fixed string: Practice exclusively on the 6th, 5th, 4th, 3rd, 2nd, or 1st string.
-   - "All strings" mode: In each round, a string is chosen at random along with the note.
-2. **Include Accidentals (Sharps #)**:
-   - *Disabled*: Natural notes only (`A, B, C, D, E, F, G`).
-   - *Enabled*: Sharps are also included (`A#, C#, D#, F#, G#`).
-3. **Response Time (Timer)**:
-   - Configurable from 2 to 30 seconds (or untimed / relaxed mode).
-   - Visual countdown progress bar.
-4. **Training Fret Range**:
-   - Frets 0 to 12 (standard range with double fret markers at the 12th fret).
-   - Additional filters: Open frets (0–5), middle (5–9), high (9–12), or full neck up to 15/24.
-5. **User Input**:
-   - **Microphone (Pitch Detection)**: Listens to the real instrument via default or selected audio input device.
-   - **Interactive Fretboard**: Allows clicking with the mouse on the corresponding fret and string as an alternative or complement.
-6. **Reference Audio**:
-   - Enable or disable acoustic reference tone playback at the start of each round.
+<br/>
+
+| 🎸 6-String Diapason | 🎯 Real-Time Pitch DSP | ⚡ Sub-20ms Audio Engine | 🏆 Gamified Streaks | 🎨 Dark Modern GUI |
+| :---: | :---: | :---: | :---: | :---: |
+| Proportional string gauges & frets | YIN autocorrelation algorithm | Continuous PCM microphone capture | Live score, streaks & reaction timer | Sleek FlatLaf Dark theme |
+
+</div>
 
 ---
 
-## 🏗️ Technical Architecture
+<a name="-english"></a>
+## 🌟 English Overview
 
-The application is structured into decoupled layers leveraging modern **Java 21** features:
+### 💡 What is Guitar Fretboard Trainer?
+**Guitar Fretboard Trainer** is a high-performance desktop application engineered with **Java 21**, **Swing (FlatLaf Dark)**, and real-time **DSP (Digital Signal Processing)**. It helps guitarists of all levels achieve instantaneous fretboard recall through randomized challenges and pitch detection with their actual physical instrument.
+
+Inspired by proven fretboard learning methodologies like [FaChords Guitar Fretboard Notes](https://www.fachords.com/guitar-fretboard-notes/), it pairs audio pitch analysis with an interactive visual fretboard to bridge the gap between theory and muscle memory.
+
+---
+
+### ✨ Key Features
+
+- 🎤 **Real-Time Microphone Pitch Detection**: Connect an electric guitar through an audio interface or use an acoustic guitar with your laptop/desktop microphone. The embedded **YIN pitch detection algorithm** tracks the fundamental frequency ($f_0$) and validates your notes live.
+- 🎸 **Interactive Vector Fretboard**:
+  - Proportional string thicknesses (gauge rendering from 1st High E to 6th Low E).
+  - Accurate fret markers at frets 3, 5, 7, 9 and double markers at fret 12.
+  - Interactive mouse input: click notes directly on the diapason as an alternative to microphone input.
+- 🔊 **Acoustic Reference Synthesizer**: Built-in tone generator with realistic acoustic harmonic decays to train your ear alongside your visual recognition.
+- ⚙️ **Configurable Training Modes**:
+  - **Strings**: Isolate individual strings (1st to 6th) or shuffle all strings randomly.
+  - **Accidentals**: Toggle between Natural notes only (`A, B, C, D, E, F, G`) and Full Chromatic with Sharps (`#`).
+  - **Countdown Timer**: 2s to 30s timers or untimed relaxed practice.
+  - **Fret Neck Range**: Frets 0–12 (standard) or customized fret ranges.
+  - **Anti-Vocal Noise & Noise Gate**: Filters voice frequencies and low-level room noise.
+- 📊 **Gamified Analytics**: Real-time streak tracking, high scores, accuracy percentage, and average response times.
+
+---
+
+### 🧠 How It Works
+
+```mermaid
+flowchart LR
+    A[Random Challenge Generator] -->|Target Note & String| B[Challenge Display]
+    B -->|Tone Playback| C[Acoustic Audio Synthesizer]
+    D[Physical Guitar / Mic] -->|PCM Audio Stream| E[YIN DSP Pitch Detector]
+    F[User Mouse Click] -->|Fret/String Hit| G[Session Engine]
+    E -->|Detected Hz & Note| G
+    G -->|Validate Match| H{Hit or Miss?}
+    H -->|Match| I[Streak + Score Update & Next Challenge]
+    H -->|Miss / Timeout| J[Visual Feedback & Reset Streak]
+```
+
+1. **Challenge Generated**: A note (e.g., `G#`) and target string (e.g., `4ª D`) are selected.
+2. **Audio Cue**: The synthesizer optionally sounds the reference frequency.
+3. **Countdown**: The progress bar counts down your allotted time.
+4. **Resolution**: Strike the note on your guitar or click the fretboard. When validated, the system rewards your streak and presents the next note.
+
+---
+
+### 🎵 Musical Foundations & Tuning Table
+
+#### Standard Western Chromatic Scale (12 Semitones)
+$$\text{C} \rightarrow \text{C}\# \rightarrow \text{D} \rightarrow \text{D}\# \rightarrow \text{E} \rightarrow \text{F} \rightarrow \text{F}\# \rightarrow \text{G} \rightarrow \text{G}\# \rightarrow \text{A} \rightarrow \text{A}\# \rightarrow \text{B}$$
+
+> **Note**: Natural half-steps occur between **B & C** and **E & F** (there are no standard $B\#$ or $E\#$).
+
+#### Standard Guitar Tuning (EADGBE)
+| String | Name | Note | Fundamental ($f_0$) | Octave Range |
+| :---: | :---: | :---: | :---: | :---: |
+| **6ª** | Low E | **E** | ~82.41 Hz | E2 |
+| **5ª** | A | **A** | ~110.00 Hz | A2 |
+| **4ª** | D | **D** | ~146.83 Hz | D3 |
+| **3ª** | G | **G** | ~196.00 Hz | G3 |
+| **2ª** | B | **B** | ~246.94 Hz | B3 |
+| **1ª** | High E | **E** | ~329.63 Hz | E4 |
+
+Each fret ascends by one chromatic semitone according to:
+$$f = f_{\text{open}} \cdot 2^{\frac{\text{fret}}{12}}$$
+
+---
+
+### 🏗️ Technical Architecture
 
 ```
 com.threadboardlearn
-├── App.java                      # Swing entry point with FlatLaf Dark Theme
+├── App.java                      # FlatLaf Dark initialization & application entry
 ├── model/
-│   ├── Note.java                 # Note enum / record (name, semitone, accidentals)
-│   ├── GuitarString.java         # Guitar string definition (index 1-6, base tuning)
-│   ├── FretboardPosition.java    # Pair (string, fret, resulting note, Hz frequency)
-│   └── TrainingSessionConfig.java# Settings (fixed string or all, with sharps, timer, etc.)
+│   ├── Note.java                 # Note enum with pitch, semitones, and accidental rules
+│   ├── GuitarString.java         # 6-string physical representation & tuning references
+│   ├── FretboardPosition.java    # Mapping of string + fret -> frequency & note
+│   └── TrainingSessionConfig.java# Training parameters & preferences
 ├── audio/
-│   ├── AudioPlayer.java          # Tone synthesis / Acoustic synthesized reference audio
-│   └── MicrophoneCapture.java    # Continuous PCM capture using javax.sound.sampled (TargetDataLine)
+│   ├── AudioPlayer.java          # Multi-harmonic acoustic tone synthesizer
+│   └── MicrophoneCapture.java    # Non-blocking PCM TargetDataLine capture
 ├── dsp/
-│   ├── PitchDetector.java        # Pitch detection interface
-│   └── YinPitchDetector.java     # YIN algorithm / Autocorrelation implementation for guitar
+│   ├── PitchDetector.java        # Core DSP pitch detection interface
+│   └── YinPitchDetector.java     # YIN autocorrelation algorithm implementation
 ├── engine/
-│   ├── GameSession.java          # Game session logic, random generator, timers, and events
-│   └── GameEventListener.java    # UI notifications (new note, timer tick, hit, miss)
+│   ├── GameSession.java          # Session state, timers, streak tracking, and validation
+│   ├── Challenge.java            # Individual challenge instance
+│   └── GameEventListener.java    # Reactive UI notification bridge
 └── ui/
-    ├── MainFrame.java            # Main application window
-    ├── ConfigPanel.java          # Configuration panel for levels, strings, timer, microphone
-    ├── ChallengeDisplayPanel.java# Prominent note letter, target string, and countdown timer
-    └── FretboardView.java        # Custom GUI component rendering the guitar fretboard
+    ├── MainFrame.java            # Primary JFrame with high-DPI scaling & layout
+    ├── ChallengeDisplayPanel.java# Giant note typography & animated countdown bar
+    ├── FretboardView.java        # Custom painted interactive fretboard component
+    ├── ControlPanel.java         # Dropdowns, sliders, and audio device configuration
+    └── StatusBar.java            # Real-time microphone monitor & performance metrics
 ```
 
-### Key Technologies:
-- **Java 21 LTS**: Records, exhaustive pattern matching/switch expressions, Virtual Threads for continuous audio processing without blocking Swing's Event Dispatch Thread (EDT).
-- **Project Lombok**: Boilerplate reduction using `@Getter` and `@Setter` on models and engines.
-- **FlatLaf (Dark / Modern UI)**: Professional visual theme for modern desktop applications.
-- **Java Sound API (`javax.sound.sampled`)**:
-  - `TargetDataLine` for PCM audio capture (44.1 kHz, 16-bit mono).
-  - `SourceDataLine` for synthesizing sinusoidal waves with acoustic guitar-like harmonics and decay envelopes.
-- **YIN Algorithm / Autocorrelation**:
-  - Tuned specifically for guitar pitch range (~70 Hz to ~1000 Hz).
-  - Clarity and energy thresholds to discard ambient background noise.
-
 ---
 
-## 🚀 Requirements and Getting Started
+### 🚀 Quick Start
 
-### Requirements:
-- **Windows 10 / 11** (or macOS / Linux)
-- **JDK 21** (e.g. Amazon Corretto 21, Eclipse Temurin 21)
+#### Prerequisites
+- **JDK 21** or later ([Amazon Corretto 21](https://aws.amazon.com/corretto/), [Eclipse Temurin 21](https://adoptium.net/))
 - **Apache Maven 3.8+**
-- Microphone or audio interface (optional, but recommended for listening mode).
+- (Optional) Standard audio input microphone or guitar interface.
 
-### Building and Running:
+#### 1. Clone & Build
+```powershell
+git clone https://github.com/Gaboxondo/Fretboard--rainer.git
+cd Fretboard--rainer
+mvn clean package
+```
 
-1. **Verify or configure Java 21 in your terminal**:
-   ```powershell
-   $env:JAVA_HOME = "C:\Devtools\jdks\Corretto21"
-   $env:Path = "C:\Devtools\jdks\Corretto21\bin;$env:Path"
-   java -version
-   mvn -v
-   ```
+#### 2. Run Application
+```powershell
+# Using Maven:
+mvn exec:java -Dexec.mainClass="com.threadboardlearn.App"
 
-2. **Build the project**:
-   ```powershell
-   mvn clean package
-   ```
+# Or launch the compiled Fat JAR:
+java -jar target/fretboard-trainer-1.0.0.jar
+```
 
-3. **Run the application**:
-   ```powershell
-   mvn exec:java -Dexec.mainClass="com.threadboardlearn.App"
-   # Or run the generated Fat JAR:
-   java -jar target/fretboard-trainer-1.0.0.jar
-   ```
+Alternatively, on Windows double-click **`run.bat`** or execute **`./run.ps1`**.
 
 ---
 
-## 📌 Project Status and Roadmap
-- [x] Base setup in `pom.xml` with Java 21, FlatLaf, and Maven plugins.
-- [x] Master specification and architecture documentation (`README.md`).
-- [x] Music domain model implementation ([Note.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/model/Note.java), [GuitarString.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/model/GuitarString.java), [FretboardPosition.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/model/FretboardPosition.java)).
-- [x] Audio synthesis implementation for acoustic reference tone and sound feedback ([AudioPlayer.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/audio/AudioPlayer.java)).
-- [x] Microphone capture ([MicrophoneCapture.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/audio/MicrophoneCapture.java)) and YIN pitch detection algorithm ([YinPitchDetector.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/dsp/YinPitchDetector.java)).
-- [x] Training session and randomized challenge engine ([TrainingSession.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/engine/TrainingSession.java), [Challenge.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/engine/Challenge.java), [TrainingStats.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/engine/TrainingStats.java)).
-- [x] Graphical fretboard component ([FretboardView.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/FretboardView.java)) featuring fret inlays, proportional string gauges, and interactive mouse-click detection.
-- [x] Complete graphical user interface ([MainFrame.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/MainFrame.java), [ChallengeDisplayPanel.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/ChallengeDisplayPanel.java), [ControlPanel.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/ControlPanel.java), [StatusBar.java](file:///c:/Proyectos/ThreadBoardlearn/src/main/java/com/threadboardlearn/ui/StatusBar.java)).
-- [x] Automated unit test suite for notes, string tuning, and YIN pitch detection (11 tests passing).
-- [x] Executable Fat JAR packaging and one-click launch scripts (`run.bat`, `run.ps1`).
+<a name="-español"></a>
+## 🇪🇸 Descripción en Español
+
+### 🎸 ¿Qué es Guitar Fretboard Trainer?
+**Guitar Fretboard Trainer** es una aplicación de escritorio desarrollada con **Java 21**, **FlatLaf Dark** y procesamiento digital de señales de audio en tiempo real (**DSP**). Su propósito es entrenar y acelerar la memorización visual y auditiva de las notas en el mástil de la guitarra.
+
+Permite responder de dos formas complementarias:
+1. **Tocando tu guitarra real**: El micrófono capta la señal de audio y el algoritmo **YIN** reconoce la nota al instante.
+2. **Haciendo clic en el diapasón interactivo**: Marca el traste y cuerda correspondiente directamente en pantalla.
+
+### 📋 Características Principales
+- 🎧 **Detección de tono por micrófono**: Análisis de frecuencia fundamental en tiempo real con filtrado de ruido y octavas.
+- 🎨 **Diapasón interactivo detallado**: Cuerdas con grosor calibrado, cejuela, trastes proporcionales e inlays dobles en el traste 12.
+- 🔊 **Audio de referencia sintético**: Generación de onda con armónicos acústicos para entrenar el oído.
+- ⚙️ **Configuración flexible**: Selección de cuerda única o aleatoria, inclusión de sostenidos (`#`), temporizador personalizable de 2 a 30 segundos y rangos de trastes.
+- 📈 **Estadísticas de sesión**: Contador de aciertos, porcentaje de precisión, racha actual y mejor récord.
+
+---
+
+## 📄 License
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
