@@ -65,17 +65,22 @@ jobs:
         run: |
           mvn -B clean package
 
-      - name: Package Windows Standalone Executable (jpackage)
+      - name: Set up Inno Setup Compiler
+        shell: pwsh
+        run: |
+          choco install innosetup -y
+
+      - name: Package Windows Standalone App & Single-File Installer
         shell: pwsh
         run: |
           $ver = "${{ steps.version.outputs.NEW_VERSION }}"
           Write-Host "Generando ejecutable autónomo para Windows (v$ver)..."
           
-          # Carpeta de entrada limpia exclusiva para el fat jar
+          # 1. Carpeta de entrada limpia exclusiva para el fat jar
           New-Item -ItemType Directory -Force "target/jpackage-in" | Out-Null
           Copy-Item "target/fretboard-trainer-$ver.jar" "target/jpackage-in/"
           
-          # jpackage genera la carpeta autónoma con FretboardTrainer.exe, icono e JRE 21 empotrado
+          # 2. jpackage genera la estructura autónoma con FretboardTrainer.exe e JRE 21 empotrado
           & jpackage `
             --name "FretboardTrainer" `
             --input "target/jpackage-in" `
@@ -88,11 +93,20 @@ jobs:
             --vendor "ThreadBoardLearn" `
             --description "Guitar Fretboard Trainer"
           
-          # Empaquetar en ZIP descargable listo para doble click
+          # 3. Compilar el Instalador en un ÚNICO archivo EXE (FretboardTrainer-Setup.exe)
+          $isccPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $isccPath)) {
+            $isccPath = (Get-Command ISCC -ErrorAction SilentlyContinue).Source
+          }
+          Write-Host "Compilando instalador único .exe con: $isccPath"
+          & "$isccPath" /DMyAppVersion="$ver" installer/fretboard-trainer.iss
+          Copy-Item "target/dist/FretboardTrainer-Setup.exe" "target/dist/FretboardTrainer-v$ver-Setup.exe"
+
+          # 4. Empaquetar versión portable en ZIP por si se desea
           Compress-Archive -Path "target/dist/FretboardTrainer" -DestinationPath "target/dist/FretboardTrainer-v$ver-Windows.zip"
           Copy-Item "target/dist/FretboardTrainer-v$ver-Windows.zip" "target/dist/FretboardTrainer-Windows.zip"
           
-          # Copiar JARs para adjuntar en la release
+          # 5. Copiar JARs
           Copy-Item "target/fretboard-trainer-$ver.jar" "target/dist/"
           Copy-Item "target/fretboard-trainer-$ver.jar" "target/dist/fretboard-trainer.jar"
 
@@ -122,9 +136,12 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
+            target/dist/FretboardTrainer-v${{ steps.version.outputs.NEW_VERSION }}-Setup.exe
+            target/dist/FretboardTrainer-Setup.exe
             target/dist/FretboardTrainer-v${{ steps.version.outputs.NEW_VERSION }}-Windows.zip
             target/dist/FretboardTrainer-Windows.zip
             target/dist/fretboard-trainer-${{ steps.version.outputs.NEW_VERSION }}.jar
             target/dist/fretboard-trainer.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

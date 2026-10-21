@@ -184,11 +184,12 @@ No technical knowledge or Java installation is required to run the desktop appli
 
 | Platform | Package | How to Run | Link |
 | :--- | :--- | :--- | :--- |
-| **🪟 Windows (Recommended)** | Standalone `.zip` with `FretboardTrainer.exe` | Unzip folder & double-click **`FretboardTrainer.exe`** | [⬇️ Download Latest Windows Release](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
-| **☕ Multiplatform (Linux/macOS)** | Portable Fat JAR | Run with Java 21: `java -jar fretboard-trainer.jar` | [⬇️ Download Latest JAR](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
+| **🪟 Windows (Recommended)** | **`FretboardTrainer-Setup.exe`** (~35 MB) | **Single `.exe`**: 1-click install, puts icon on Desktop & starts immediately | [⬇️ Download Windows Installer (.exe)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
+| **🪟 Windows (Portable)** | `FretboardTrainer-Windows.zip` | Extract zip & double-click `FretboardTrainer.exe` | [⬇️ Download Portable (.zip)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
+| **☕ Cross-Platform (macOS/Linux)**| `fretboard-trainer.jar` | Run with Java 21: `java -jar fretboard-trainer.jar` | [⬇️ Download JAR](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
 
 > [!TIP]
-> **Windows Users**: The standalone package bundles a dedicated Java 21 runtime and the application icon. You do not need to install Java, set environment variables, or open the terminal.
+> **Windows Users**: You only need to download **`FretboardTrainer-Setup.exe`**. It is a single, self-contained file with the embedded Java 21 runtime and custom icon. No folders to copy, no terminal, and no admin permissions required!
 
 ---
 
@@ -268,9 +269,10 @@ Permite responder de dos formas complementarias:
 
 ### 📥 Descarga para Windows (Sin necesidad de instalar Java)
 1. Ve a la página de [Última Release en GitHub](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest).
-2. Descarga el archivo **`FretboardTrainer-Windows.zip`**.
-3. Descomprime la carpeta en tu equipo.
-4. Haz doble clic en **`FretboardTrainer.exe`** (con su icono de mástil de guitarra) para comenzar a usarlo de inmediato.
+2. Descarga el archivo único **`FretboardTrainer-Setup.exe`** (instalador ligero de ~35 MB).
+3. Haz doble clic en el archivo: se instala en segundos en tu perfil de usuario (sin permisos de administrador requeridos) y te crea un acceso directo con el icono del mástil en tu **Escritorio** y **Menú Inicio**.
+4. ¡Doble clic al icono del escritorio y listo! No necesitas Java, ni terminal, ni copiar carpetas `app/` o `runtime/` a mano.
+*(También tienes disponible la versión portable en `.zip` por si prefieres no instalar nada).*
 
 ### 📋 Características Principales
 - 🌐 **Soporte Multiidioma (i18n)**: Totalmente disponible en dos idiomas (**Español e Inglés**). Selector integrado en la barra superior para alternar en caliente sin reiniciar la app.
