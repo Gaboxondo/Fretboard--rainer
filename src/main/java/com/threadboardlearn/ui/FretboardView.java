@@ -18,6 +18,7 @@ import java.util.function.BiConsumer;
  * Soporta clics interactivos para responder a los retos, marcadores de trastes (inlays),
  * grosor de cuerdas proporcional y animaciones de acierto/fallo.
  */
+@SuppressWarnings("serial")
 public class FretboardView extends JPanel {
     private static final int DEFAULT_MAX_FRET = 12;
     private int maxFret = DEFAULT_MAX_FRET;

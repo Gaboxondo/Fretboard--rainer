@@ -17,6 +17,7 @@ import java.awt.event.WindowEvent;
 /**
  * Ventana principal de la aplicación de escritorio Fretboard Trainer.
  */
+@SuppressWarnings("serial")
 public class MainFrame extends JFrame implements GameEventListener {
     private final TrainingConfig config;
     private final AudioPlayer audioPlayer;

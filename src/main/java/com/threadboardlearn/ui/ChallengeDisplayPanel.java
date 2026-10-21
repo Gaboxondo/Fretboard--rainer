@@ -10,6 +10,7 @@ import java.awt.*;
  * Panel superior con la presentación visual del reto actual:
  * Nota objetivo en grande, cuerda donde buscarla, barra de tiempo regresiva y feedback.
  */
+@SuppressWarnings("serial")
 public class ChallengeDisplayPanel extends JPanel {
     private final JLabel noteLabel = new JLabel("—", SwingConstants.CENTER);
     private final JLabel stringLabel = new JLabel("Selecciona 'Iniciar' para comenzar", SwingConstants.CENTER);

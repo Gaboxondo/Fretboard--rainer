@@ -10,6 +10,7 @@ import java.awt.*;
  * Barra de estado inferior con monitor de micrófono en tiempo real (VU meter, nota detectada)
  * y estadísticas de rendimiento (racha, aciertos, precisión y tiempo de respuesta medio).
  */
+@SuppressWarnings("serial")
 public class StatusBar extends JPanel {
     private final JProgressBar vuMeter = new JProgressBar(0, 100);
     private final JLabel micNoteLabel = new JLabel("Micrófono: Inactivo");

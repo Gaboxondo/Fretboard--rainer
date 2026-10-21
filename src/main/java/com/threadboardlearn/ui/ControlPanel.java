@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 /**
  * Panel de controles de configuración de niveles, cuerdas, sostenidos y micrófono.
  */
+@SuppressWarnings("serial")
 public class ControlPanel extends JPanel {
     private final JComboBox<String> stringComboBox = new JComboBox<>();
     private final JCheckBox sharpsCheckBox = new JCheckBox("Incluir sostenidos (#)", false);
