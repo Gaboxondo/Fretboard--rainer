@@ -22,6 +22,7 @@ fun FretboardComposable(
     targetString: GuitarString? = null,
     lastClickedFret: Pair<GuitarString, Int>? = null,
     isLastClickCorrect: Boolean? = null,
+    solutionFrets: List<Int>? = null,
     onFretClicked: (GuitarString, Int) -> Unit
 ) {
     val strings = GuitarString.values() // E4, B3, G3, D3, A2, E2
@@ -123,7 +124,38 @@ fun FretboardComposable(
                 )
             }
 
-            // 3. Feedback visual del último clic
+            // 3. Feedback visual de solución esperada (en caso de timeout)
+            if (targetString != null && !solutionFrets.isNullOrEmpty()) {
+                val targetIndex = strings.indexOf(targetString)
+                if (targetIndex != -1) {
+                    val y = stringSpacing * (targetIndex + 1)
+                    solutionFrets.forEach { solFret ->
+                        val x = if (solFret == 0) {
+                            fretWidth * 0.35f
+                        } else {
+                            (solFret - 0.5f) * fretWidth
+                        }
+                        // Halo dorado de solución
+                        drawCircle(
+                            color = Color(0x66FFD54F),
+                            radius = 16.dp.toPx(),
+                            center = Offset(x, y)
+                        )
+                        drawCircle(
+                            color = Color(0xFFFFD54F),
+                            radius = 9.dp.toPx(),
+                            center = Offset(x, y)
+                        )
+                        drawCircle(
+                            color = Color.Black,
+                            radius = 4.dp.toPx(),
+                            center = Offset(x, y)
+                        )
+                    }
+                }
+            }
+
+            // 4. Feedback visual del último clic
             if (lastClickedFret != null && isLastClickCorrect != null) {
                 val (clickedString, clickedFret) = lastClickedFret
                 val stringIndex = strings.indexOf(clickedString)

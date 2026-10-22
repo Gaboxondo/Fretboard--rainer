@@ -10,16 +10,20 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,7 +61,7 @@ class MainActivity : ComponentActivity() {
             isMicrophoneEnabled = false // Desactivado por defecto hasta pedir permisos
             isAdaptiveLearning = true
             setAllStrings(true)
-            timeLimitSeconds = 0
+            timeLimitSeconds = 5 // 5 segundos de cuenta atrás por defecto
         }
 
         audioPlayer = AndroidAudioPlayer()
@@ -112,6 +117,14 @@ fun TrainerAppScreen(
     var adaptiveEnabled by remember { mutableStateOf(config.isAdaptiveLearning) }
     var allStrings by remember { mutableStateOf(config.isAllStrings) }
 
+    // Estados de cuenta atrás y temporizador
+    var timeLimitSeconds by remember { mutableStateOf(config.timeLimitSeconds) }
+    var secondsRemaining by remember { mutableStateOf(config.timeLimitSeconds) }
+    var percentElapsed by remember { mutableStateOf(0.0) }
+    var isTimedOut by remember { mutableStateOf(false) }
+    var lastReactionTimeMs by remember { mutableStateOf<Long?>(null) }
+    var isTimerMenuExpanded by remember { mutableStateOf(false) }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -135,16 +148,29 @@ fun TrainerAppScreen(
                 currentChallenge = challenge
                 lastClick = null
                 isLastClickCorrect = null
+                isTimedOut = false
+                lastReactionTimeMs = null
+                secondsRemaining = config.timeLimitSeconds
+                percentElapsed = 0.0
             }
 
-            override fun onTimerTick(secondsRemaining: Int, percentElapsed: Double) {}
+            override fun onTimerTick(secRemaining: Int, pctElapsed: Double) {
+                secondsRemaining = secRemaining
+                percentElapsed = pctElapsed
+            }
 
             override fun onChallengeSuccess(challenge: Challenge, reactionTimeMs: Long) {
                 isLastClickCorrect = true
+                isTimedOut = false
+                lastReactionTimeMs = reactionTimeMs
+                percentElapsed = 0.0
             }
 
             override fun onChallengeTimeout(challenge: Challenge) {
                 isLastClickCorrect = false
+                isTimedOut = true
+                secondsRemaining = 0
+                percentElapsed = 1.0
             }
 
             override fun onPitchActivity(pitchResult: PitchDetectionResult) {
@@ -157,6 +183,13 @@ fun TrainerAppScreen(
 
             override fun onSessionStateChanged(running: Boolean) {
                 isRunning = running
+                if (!running) {
+                    currentChallenge = null
+                    isTimedOut = false
+                    lastClick = null
+                    isLastClickCorrect = null
+                    percentElapsed = 0.0
+                }
             }
         })
 
@@ -173,18 +206,37 @@ fun TrainerAppScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Cabecera
+        // 1. Cabecera con Logotipo Oficial de la Aplicación
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Fretboard Trainer",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.app_logo),
+                    contentDescription = "Fretboard Trainer Logo",
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+                Column {
+                    Text(
+                        text = "Fretboard Trainer",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Entrena notas y agilidad",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFAAAAAA)
+                    )
+                }
+            }
 
             AssistChip(
                 onClick = {},
@@ -195,7 +247,7 @@ fun TrainerAppScreen(
             )
         }
 
-        // 2. Tarjeta del Reto Actual
+        // 2. Tarjeta del Reto Actual con Cuenta Atrás
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -220,13 +272,86 @@ fun TrainerAppScreen(
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "En: ${challenge.targetString().label}",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF64B5F6)
                     )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Feedback de Estado / Mensaje de Temporizador
+                    if (isTimedOut) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0x33F44336)
+                        ) {
+                            Text(
+                                text = "⏱️ ¡Tiempo agotado! Traste(s): ${challenge.validFrets()}",
+                                color = Color(0xFFEF5350),
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                fontSize = 14.sp
+                            )
+                        }
+                    } else if (lastReactionTimeMs != null && isLastClickCorrect == true) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0x334CAF50)
+                        ) {
+                            val sec = String.format(java.util.Locale.US, "%.2f", lastReactionTimeMs!! / 1000.0)
+                            Text(
+                                text = "🎉 ¡Correcto! ($sec s)",
+                                color = Color(0xFF4CAF50),
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                fontSize = 14.sp
+                            )
+                        }
+                    } else if (timeLimitSeconds > 0) {
+                        val timerColor = when {
+                            percentElapsed < 0.55 -> Color(0xFF4CAF50)
+                            percentElapsed < 0.80 -> Color(0xFFFFA726)
+                            else -> Color(0xFFEF5350)
+                        }
+                        Text(
+                            text = "⏱️ ${secondsRemaining}s restantes",
+                            color = timerColor,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
+                    } else {
+                        Text(
+                            text = "⏱️ Modo libre (Sin límite)",
+                            color = Color.Gray,
+                            fontSize = 13.sp
+                        )
+                    }
+
+                    // Barra Visual de Cuenta Atrás (Progreso animado)
+                    if (timeLimitSeconds > 0) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        val progressFraction = (1.0 - percentElapsed).toFloat().coerceIn(0f, 1f)
+                        val barColor = when {
+                            isTimedOut -> Color(0xFFEF5350)
+                            isLastClickCorrect == true -> Color(0xFF4CAF50)
+                            percentElapsed < 0.55 -> Color(0xFF4CAF50)
+                            percentElapsed < 0.80 -> Color(0xFFFFA726)
+                            else -> Color(0xFFEF5350)
+                        }
+
+                        LinearProgressIndicator(
+                            progress = { if (isTimedOut) 0f else if (isLastClickCorrect == true) 1f else progressFraction },
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .height(8.dp)
+                                .clip(CircleShape),
+                            color = barColor,
+                            trackColor = Color(0xFF2C2C2C)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(8.dp))
                     IconButton(
@@ -248,14 +373,15 @@ fun TrainerAppScreen(
             }
         }
 
-        // 3. Diapasón Interactivo Táctil
+        // 3. Diapasón Interactivo Táctil (Muestra solución en caso de timeout)
         FretboardComposable(
             maxFret = config.maxFret,
             targetString = currentChallenge?.targetString(),
             lastClickedFret = lastClick,
             isLastClickCorrect = isLastClickCorrect,
+            solutionFrets = if (isTimedOut) currentChallenge?.validFrets() else null,
             onFretClicked = { string: GuitarString, fret: Int ->
-                if (isRunning) {
+                if (isRunning && !isTimedOut) {
                     lastClick = Pair(string, fret)
                     val correct = session.submitFretClick(string, fret)
                     isLastClickCorrect = correct
@@ -320,7 +446,7 @@ fun TrainerAppScreen(
             StatItem(label = "Precisión", value = "$accuracy%")
         }
 
-        // 6. Controles y Opciones
+        // 6. Controles y Opciones (Fila 1: Filtros de práctica)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -362,6 +488,69 @@ fun TrainerAppScreen(
                 },
                 label = { Text("6 Cuerdas") }
             )
+        }
+
+        // 6.1 Selector de Temporizador / Cuenta Atrás
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Box {
+                FilterChip(
+                    selected = timeLimitSeconds > 0,
+                    onClick = { isTimerMenuExpanded = true },
+                    label = {
+                        Text(if (timeLimitSeconds > 0) "⏱️ Cuenta atrás: ${timeLimitSeconds}s" else "⏱️ Sin límite")
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Timer,
+                            contentDescription = null
+                        )
+                    },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Cambiar cuenta atrás"
+                        )
+                    }
+                )
+
+                DropdownMenu(
+                    expanded = isTimerMenuExpanded,
+                    onDismissRequest = { isTimerMenuExpanded = false }
+                ) {
+                    val timerOptions = listOf(
+                        3 to "3 segundos (Rápido)",
+                        5 to "5 segundos (Estándar)",
+                        8 to "8 segundos (Intermedio)",
+                        10 to "10 segundos (Tranquilo)",
+                        0 to "Sin límite de tiempo"
+                    )
+
+                    timerOptions.forEach { (seconds, text) ->
+                        DropdownMenuItem(
+                            text = { Text(text) },
+                            leadingIcon = if (timeLimitSeconds == seconds) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            } else null,
+                            onClick = {
+                                config.timeLimitSeconds = seconds
+                                timeLimitSeconds = seconds
+                                secondsRemaining = seconds
+                                percentElapsed = 0.0
+                                isTimerMenuExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
         }
 
         // 7. Botón Principal Empezar / Parar
