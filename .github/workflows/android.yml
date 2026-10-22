@@ -6,10 +6,7 @@ on:
       - main
     paths:
       - 'android/**'
-      - 'src/main/java/com/threadboardlearn/model/**'
-      - 'src/main/java/com/threadboardlearn/engine/**'
-      - 'src/main/java/com/threadboardlearn/dsp/**'
-      - 'src/main/java/com/threadboardlearn/audio/**'
+      - 'src/main/**'
       - '.github/workflows/android.yml'
   workflow_dispatch:
 
