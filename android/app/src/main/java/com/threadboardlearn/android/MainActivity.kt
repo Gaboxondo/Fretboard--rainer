@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
         val config = TrainingConfig().apply {
             isMicrophoneEnabled = false // Desactivado por defecto hasta pedir permisos
             isAdaptiveLearning = true
-            isAllStrings = true
+            setAllStrings(true)
             timeLimitSeconds = 0
         }
 
@@ -358,7 +358,7 @@ fun TrainerAppScreen(
                 onClick = {
                     val newVal = !allStrings
                     allStrings = newVal
-                    config.allStrings = newVal
+                    config.setAllStrings(newVal)
                 },
                 label = { Text("6 Cuerdas") }
             )
