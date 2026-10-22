@@ -67,6 +67,13 @@ public class TrainingSession {
         }
     }
 
+    public TrainingConfig getConfig() { return config; }
+    public TrainingStats getStats() { return stats; }
+    public AdaptiveLearningEngine getAdaptiveEngine() { return adaptiveEngine; }
+    public Challenge getCurrentChallenge() { return currentChallenge; }
+    public void setListener(GameEventListener listener) { this.listener = listener; }
+    public GameEventListener getListener() { return listener; }
+
     public boolean isRunning() {
         return running.get();
     }

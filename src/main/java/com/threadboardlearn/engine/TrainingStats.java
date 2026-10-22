@@ -46,6 +46,14 @@ public class TrainingStats {
         totalReactionTimeMs = 0;
     }
 
+    public int getTotalRounds() { return totalRounds; }
+    public int getCorrectCount() { return correctCount; }
+    public int getTimeoutCount() { return timeoutCount; }
+    public int getMistakeCount() { return mistakeCount; }
+    public int getCurrentStreak() { return currentStreak; }
+    public int getBestStreak() { return bestStreak; }
+    public long getTotalReactionTimeMs() { return totalReactionTimeMs; }
+
     public double getAccuracyPercent() {
         if (totalRounds == 0) return 0.0;
         return (correctCount * 100.0) / totalRounds;

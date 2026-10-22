@@ -65,17 +65,17 @@ android {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    exclude("**/ui/**")
-    exclude("**/App.java")
-    exclude("**/audio/AudioPlayer.java")
-    exclude("**/audio/MicrophoneCapture.java")
+    exclude("com/threadboardlearn/ui/**")
+    exclude("com/threadboardlearn/App.java")
+    exclude("com/threadboardlearn/audio/AudioPlayer.java")
+    exclude("com/threadboardlearn/audio/MicrophoneCapture.java")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    exclude("**/ui/**")
-    exclude("**/App.java")
-    exclude("**/audio/AudioPlayer.java")
-    exclude("**/audio/MicrophoneCapture.java")
+    exclude("com/threadboardlearn/ui/**")
+    exclude("com/threadboardlearn/App.java")
+    exclude("com/threadboardlearn/audio/AudioPlayer.java")
+    exclude("com/threadboardlearn/audio/MicrophoneCapture.java")
 }
 
 tasks.register<Wrapper>("wrapper") {

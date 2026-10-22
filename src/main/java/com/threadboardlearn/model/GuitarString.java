@@ -32,6 +32,26 @@ public enum GuitarString {
         this.visualGauge = visualGauge;
     }
 
+    public int getNumber() {
+        return number;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public Note getOpenNote() {
+        return openNote;
+    }
+
+    public int getOpenMidiNote() {
+        return openMidiNote;
+    }
+
+    public float getVisualGauge() {
+        return visualGauge;
+    }
+
     /**
      * Obtiene la etiqueta de la cuerda traducida al idioma activo.
      */

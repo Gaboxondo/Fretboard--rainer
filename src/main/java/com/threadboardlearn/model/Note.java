@@ -35,6 +35,18 @@ public enum Note {
         this.sharp = sharp;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public int getSemitone() {
+        return semitone;
+    }
+
+    public boolean isSharp() {
+        return sharp;
+    }
+
     public static List<Note> getNaturalNotes() {
         return Arrays.stream(values())
                 .filter(n -> !n.isSharp())

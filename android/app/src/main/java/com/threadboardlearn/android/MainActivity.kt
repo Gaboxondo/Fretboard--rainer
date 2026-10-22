@@ -5,13 +5,11 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -42,7 +40,6 @@ import com.threadboardlearn.engine.GameEventListener
 import com.threadboardlearn.engine.TrainingSession
 import com.threadboardlearn.engine.TrainingStats
 import com.threadboardlearn.model.GuitarString
-import com.threadboardlearn.model.Note
 import com.threadboardlearn.model.TrainingConfig
 
 class MainActivity : ComponentActivity() {
@@ -87,27 +84,10 @@ class MainActivity : ComponentActivity() {
                 ) {
                     TrainerAppScreen(
                         session = session,
-                        config = config,
-                        onRequestMicPermission = { callback ->
-                            requestMicPermission(callback)
-                        }
+                        config = config
                     )
                 }
             }
-        }
-    }
-
-    private fun requestMicPermission(onGranted: (Boolean) -> Unit) {
-        val granted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.RECORD_AUDIO
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (granted) {
-            onGranted(true)
-        } else {
-            // El launcher se gestiona en Compose
-            onGranted(false)
         }
     }
 
@@ -120,12 +100,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TrainerAppScreen(
     session: TrainingSession,
-    config: TrainingConfig,
-    onRequestMicPermission: ((Boolean) -> Unit) -> Unit
+    config: TrainingConfig
 ) {
     var isRunning by remember { mutableStateOf(false) }
     var currentChallenge by remember { mutableStateOf<Challenge?>(null) }
-    var stats by remember { mutableStateOf(session.stats) }
+    var stats by remember { mutableStateOf<TrainingStats>(session.stats) }
     var lastPitch by remember { mutableStateOf<PitchDetectionResult?>(null) }
     var lastClick by remember { mutableStateOf<Pair<GuitarString, Int>?>(null) }
     var isLastClickCorrect by remember { mutableStateOf<Boolean?>(null) }
@@ -228,21 +207,22 @@ fun TrainerAppScreen(
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (currentChallenge != null && isRunning) {
+                val challenge = currentChallenge
+                if (challenge != null && isRunning) {
                     Text(
                         text = "Toca la nota:",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )
                     Text(
-                        text = currentChallenge!!.targetNote().getDisplayName(),
+                        text = challenge.targetNote().name,
                         style = MaterialTheme.typography.displayMedium,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "En: ${currentChallenge!!.targetString().getDisplayName()}",
+                        text = "En: ${challenge.targetString().label}",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF64B5F6)
@@ -274,7 +254,7 @@ fun TrainerAppScreen(
             targetString = currentChallenge?.targetString(),
             lastClickedFret = lastClick,
             isLastClickCorrect = isLastClickCorrect,
-            onFretClicked = { string, fret ->
+            onFretClicked = { string: GuitarString, fret: Int ->
                 if (isRunning) {
                     lastClick = Pair(string, fret)
                     val correct = session.submitFretClick(string, fret)
@@ -305,7 +285,7 @@ fun TrainerAppScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        val noteText = lastPitch?.note()?.displayName ?: "--"
+                        val noteText = lastPitch?.note()?.name ?: "--"
                         val freqText = if (lastPitch != null && lastPitch!!.frequencyHz() > 0) {
                             String.format("%.1f Hz", lastPitch!!.frequencyHz())
                         } else "--"
@@ -376,8 +356,9 @@ fun TrainerAppScreen(
             FilterChip(
                 selected = allStrings,
                 onClick = {
-                    allStrings = !allStrings
-                    config.isAllStrings = allStrings
+                    val newVal = !allStrings
+                    allStrings = newVal
+                    config.allStrings = newVal
                 },
                 label = { Text("6 Cuerdas") }
             )

@@ -36,4 +36,42 @@ public class TrainingConfig {
     public boolean isAllStrings() {
         return selectedString == null;
     }
+
+    public void setAllStrings(boolean all) {
+        if (all) {
+            this.selectedString = null;
+        } else if (this.selectedString == null) {
+            this.selectedString = GuitarString.STRING_6;
+        }
+    }
+
+    public GuitarString getSelectedString() { return selectedString; }
+    public void setSelectedString(GuitarString selectedString) { this.selectedString = selectedString; }
+
+    public boolean isIncludeSharps() { return includeSharps; }
+    public void setIncludeSharps(boolean includeSharps) { this.includeSharps = includeSharps; }
+
+    public int getTimeLimitSeconds() { return timeLimitSeconds; }
+    public void setTimeLimitSeconds(int timeLimitSeconds) { this.timeLimitSeconds = timeLimitSeconds; }
+
+    public int getMaxFret() { return maxFret; }
+    public void setMaxFret(int maxFret) { this.maxFret = maxFret; }
+
+    public boolean isPlayReferenceAudio() { return playReferenceAudio; }
+    public void setPlayReferenceAudio(boolean playReferenceAudio) { this.playReferenceAudio = playReferenceAudio; }
+
+    public boolean isMicrophoneEnabled() { return microphoneEnabled; }
+    public void setMicrophoneEnabled(boolean microphoneEnabled) { this.microphoneEnabled = microphoneEnabled; }
+
+    public double getMicSensitivity() { return micSensitivity; }
+    public void setMicSensitivity(double micSensitivity) { this.micSensitivity = micSensitivity; }
+
+    public boolean isMatchExactOctave() { return matchExactOctave; }
+    public void setMatchExactOctave(boolean matchExactOctave) { this.matchExactOctave = matchExactOctave; }
+
+    public double getMinConfidence() { return minConfidence; }
+    public void setMinConfidence(double minConfidence) { this.minConfidence = minConfidence; }
+
+    public boolean isAdaptiveLearning() { return adaptiveLearning; }
+    public void setAdaptiveLearning(boolean adaptiveLearning) { this.adaptiveLearning = adaptiveLearning; }
 }
