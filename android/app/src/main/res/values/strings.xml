@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Fretboard Trainer</string>
+    <string name="start_session">Empezar</string>
+    <string name="stop_session">Detener</string>
+    <string name="challenge">Reto</string>
+    <string name="listen_mic">Micrófono Activo</string>
+    <string name="adaptive_mode">Modo Adaptativo</string>
+    <string name="all_strings">Todas las cuerdas</string>
+    <string name="score">Puntuación</string>
+    <string name="streak">Racha</string>
+    <string name="accuracy">Precisión</string>
+</resources>

@@ -36,3 +36,11 @@ target/
 
 # Graphify
 graphify-out/
+
+### Android ###
+.gradle/
+build/
+**/build/
+local.properties
+*.apk
+*.aab

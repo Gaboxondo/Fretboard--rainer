@@ -19,9 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Captura audio del micrófono del sistema en tiempo real y ejecuta la detección de tono.
  */
-public class MicrophoneCapture {
-    public interface Listener {
-        void onPitchDetected(PitchDetectionResult result);
+public class MicrophoneCapture implements MicrophoneCaptureService {
+    public interface Listener extends MicrophoneCaptureService.Listener {
     }
 
     private static final float SAMPLE_RATE = 44100.0f;
@@ -34,7 +33,7 @@ public class MicrophoneCapture {
     private Thread captureThread;
 
     @Setter
-    private Listener listener;
+    private MicrophoneCaptureService.Listener listener;
 
     @Setter
     private Mixer.Info selectedMixer;

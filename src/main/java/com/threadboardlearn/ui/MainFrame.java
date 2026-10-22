@@ -57,7 +57,7 @@ public class MainFrame extends JFrame implements GameEventListener {
         this.config = new TrainingConfig();
         this.audioPlayer = new AudioPlayer();
         this.micCapture = new MicrophoneCapture();
-        this.session = new TrainingSession(config, audioPlayer, micCapture);
+        this.session = new TrainingSession(config, audioPlayer, micCapture, SwingUtilities::invokeLater);
         this.session.setListener(this);
 
         // 2. Inicialización de componentes gráficos

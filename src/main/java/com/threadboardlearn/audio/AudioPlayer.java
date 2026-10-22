@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
  * Utiliza el sintetizador MIDI nativo de Java con instrumento de Guitarra Acústica,
  * con fallback a síntesis por onda de audio PCM si el sintetizador MIDI no estuviera disponible.
  */
-public class AudioPlayer {
+public class AudioPlayer implements AudioPlayerService {
     private static final int GUITAR_STEEL_PROGRAM = 25; // General MIDI 25: Acoustic Guitar (Steel)
     private static final int GUITAR_CHANNEL = 0;
 

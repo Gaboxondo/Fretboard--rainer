@@ -1,7 +1,7 @@
 package com.threadboardlearn.engine;
 
-import com.threadboardlearn.audio.AudioPlayer;
-import com.threadboardlearn.audio.MicrophoneCapture;
+import com.threadboardlearn.audio.AudioPlayerService;
+import com.threadboardlearn.audio.MicrophoneCaptureService;
 import com.threadboardlearn.dsp.PitchDetectionResult;
 import com.threadboardlearn.model.GuitarString;
 import com.threadboardlearn.model.Note;
@@ -10,7 +10,6 @@ import com.threadboardlearn.model.TrainingConfig;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.swing.SwingUtilities;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -22,12 +21,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Motor central de la sesión de entrenamiento.
  * Coordina los retos aleatorios, el temporizador, el audio y la detección por micrófono.
+ * Totalmente desacoplado de la plataforma gráfica (Desktop / Android).
  */
 public class TrainingSession {
     @Getter
     private final TrainingConfig config;
-    private final AudioPlayer audioPlayer;
-    private final MicrophoneCapture micCapture;
+    private final AudioPlayerService audioPlayer;
+    private final MicrophoneCaptureService micCapture;
+    private final EventDispatcher eventDispatcher;
+
     @Getter
     private final TrainingStats stats = new TrainingStats();
     @Getter
@@ -49,13 +51,20 @@ public class TrainingSession {
     private static final int REQUIRED_SUSTAINED_FRAMES = 3; // ~140 ms de tono estable
     private double lastCandidateFrequency = 0.0;
 
-    public TrainingSession(TrainingConfig config, AudioPlayer audioPlayer, MicrophoneCapture micCapture) {
+    public TrainingSession(TrainingConfig config, AudioPlayerService audioPlayer, MicrophoneCaptureService micCapture) {
+        this(config, audioPlayer, micCapture, Runnable::run);
+    }
+
+    public TrainingSession(TrainingConfig config, AudioPlayerService audioPlayer, MicrophoneCaptureService micCapture, EventDispatcher eventDispatcher) {
         this.config = config;
         this.audioPlayer = audioPlayer;
         this.micCapture = micCapture;
+        this.eventDispatcher = eventDispatcher != null ? eventDispatcher : Runnable::run;
 
-        // Conectar callback del micrófono
-        this.micCapture.setListener(this::handleMicrophonePitch);
+        // Conectar callback del micrófono si está presente
+        if (this.micCapture != null) {
+            this.micCapture.setListener(this::handleMicrophonePitch);
+        }
     }
 
     public boolean isRunning() {
@@ -66,7 +75,7 @@ public class TrainingSession {
         if (running.get()) return;
         running.set(true);
 
-        if (config.isMicrophoneEnabled()) {
+        if (config.isMicrophoneEnabled() && micCapture != null) {
             try {
                 micCapture.start();
             } catch (Exception e) {
@@ -75,7 +84,7 @@ public class TrainingSession {
         }
 
         if (listener != null) {
-            SwingUtilities.invokeLater(() -> {
+            eventDispatcher.dispatch(() -> {
                 listener.onSessionStateChanged(true);
                 listener.onStatsUpdated(stats);
             });
@@ -87,10 +96,12 @@ public class TrainingSession {
     public synchronized void stop() {
         running.set(false);
         stopTimer();
-        micCapture.stop();
+        if (micCapture != null) {
+            micCapture.stop();
+        }
 
         if (listener != null) {
-            SwingUtilities.invokeLater(() -> listener.onSessionStateChanged(false));
+            eventDispatcher.dispatch(() -> listener.onSessionStateChanged(false));
         }
     }
 
@@ -135,11 +146,11 @@ public class TrainingSession {
         // 4. Notificar a la UI
         Challenge ch = currentChallenge;
         if (listener != null) {
-            SwingUtilities.invokeLater(() -> listener.onChallengeStarted(ch));
+            eventDispatcher.dispatch(() -> listener.onChallengeStarted(ch));
         }
 
         // 5. Reproducir audio de referencia si está activado
-        if (config.isPlayReferenceAudio() && !validFrets.isEmpty()) {
+        if (config.isPlayReferenceAudio() && !validFrets.isEmpty() && audioPlayer != null) {
             audioPlayer.playGuitarNote(targetString, validFrets.get(0));
         }
 
@@ -151,7 +162,7 @@ public class TrainingSession {
      * Vuelve a reproducir el sonido de la nota del reto actual.
      */
     public void replayChallengeAudio() {
-        if (currentChallenge != null && !currentChallenge.validFrets().isEmpty()) {
+        if (currentChallenge != null && !currentChallenge.validFrets().isEmpty() && audioPlayer != null) {
             audioPlayer.playGuitarNote(currentChallenge.targetString(), currentChallenge.validFrets().get(0));
         }
     }
@@ -175,11 +186,13 @@ public class TrainingSession {
             stats.recordMistake();
 
             if (listener != null) {
-                SwingUtilities.invokeLater(() -> listener.onStatsUpdated(stats));
+                eventDispatcher.dispatch(() -> listener.onStatsUpdated(stats));
             }
 
             // Reproducir la nota que el usuario ha tocado para su oído
-            audioPlayer.playGuitarNote(string, fret);
+            if (audioPlayer != null) {
+                audioPlayer.playGuitarNote(string, fret);
+            }
             return false;
         }
     }
@@ -192,7 +205,7 @@ public class TrainingSession {
 
         // Notificar nivel / tono a la UI para el VU meter y afinador
         if (listener != null) {
-            SwingUtilities.invokeLater(() -> listener.onPitchActivity(result));
+            eventDispatcher.dispatch(() -> listener.onPitchActivity(result));
         }
 
         if (challengeCompleted.get() || currentChallenge == null) {
@@ -258,11 +271,13 @@ public class TrainingSession {
         if (config.isAdaptiveLearning()) {
             adaptiveEngine.recordSuccess(currentChallenge.targetNote(), currentChallenge.targetString(), reactionTime);
         }
-        audioPlayer.playSuccessSound();
+        if (audioPlayer != null) {
+            audioPlayer.playSuccessSound();
+        }
 
         Challenge ch = currentChallenge;
         if (listener != null) {
-            SwingUtilities.invokeLater(() -> {
+            eventDispatcher.dispatch(() -> {
                 listener.onChallengeSuccess(ch, reactionTime);
                 listener.onStatsUpdated(stats);
             });
@@ -280,11 +295,13 @@ public class TrainingSession {
         if (config.isAdaptiveLearning()) {
             adaptiveEngine.recordTimeout(currentChallenge.targetNote(), currentChallenge.targetString());
         }
-        audioPlayer.playFailureSound();
+        if (audioPlayer != null) {
+            audioPlayer.playFailureSound();
+        }
 
         Challenge ch = currentChallenge;
         if (listener != null) {
-            SwingUtilities.invokeLater(() -> {
+            eventDispatcher.dispatch(() -> {
                 listener.onChallengeTimeout(ch);
                 listener.onStatsUpdated(stats);
             });
@@ -298,10 +315,9 @@ public class TrainingSession {
         stats.reset();
         adaptiveEngine.reset();
         if (listener != null) {
-            SwingUtilities.invokeLater(() -> listener.onStatsUpdated(stats));
+            eventDispatcher.dispatch(() -> listener.onStatsUpdated(stats));
         }
     }
-
 
     public List<Note> getAvailableNotes() {
         return config.isIncludeSharps() ? Note.getAllNotes() : Note.getNaturalNotes();
@@ -312,7 +328,7 @@ public class TrainingSession {
         if (limitSeconds <= 0) {
             // Sin límite de tiempo
             if (listener != null) {
-                SwingUtilities.invokeLater(() -> listener.onTimerTick(0, 0.0));
+                eventDispatcher.dispatch(() -> listener.onTimerTick(0, 0.0));
             }
             return;
         }
@@ -329,7 +345,7 @@ public class TrainingSession {
             double percentElapsed = Math.min(1.0, (double) elapsed / totalDurationMs);
 
             if (listener != null) {
-                SwingUtilities.invokeLater(() -> listener.onTimerTick(secondsRemaining, percentElapsed));
+                eventDispatcher.dispatch(() -> listener.onTimerTick(secondsRemaining, percentElapsed));
             }
 
             if (remainingMs <= 0) {
@@ -348,6 +364,8 @@ public class TrainingSession {
     public void shutdown() {
         stop();
         timerScheduler.shutdown();
-        audioPlayer.close();
+        if (audioPlayer != null) {
+            audioPlayer.close();
+        }
     }
 }

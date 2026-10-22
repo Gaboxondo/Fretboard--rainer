@@ -261,6 +261,19 @@ flowchart TD
 
 ---
 
+<a id="android-version"></a>
+### 📱 Android Version (Jetpack Compose)
+
+This repository includes a native Android app in the [`android/`](android/) directory. It directly reuses the musical model, training engine, and YIN DSP pitch detection from `src/main/java`:
+
+- **Touch Fretboard:** Interactive tactile guitar neck on mobile screens.
+- **Microphone Input:** Real-time pitch detection with `AudioRecord` and the shared YIN algorithm.
+- **Adaptive Training:** Same intelligent practice engine prioritizing challenging notes.
+
+See [`docs/ANDROID.md`](docs/ANDROID.md) for architecture details and how to run in Android Studio.
+
+---
+
 ## 📄 License
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
