@@ -9,7 +9,7 @@ import java.util.Locale;
  */
 @Getter
 public enum Language {
-    SPANISH("es", "Español", Locale.of("es")),
+    SPANISH("es", "Español", Locale.forLanguageTag("es")),
     ENGLISH("en", "English", Locale.ENGLISH);
 
     private final String code;
