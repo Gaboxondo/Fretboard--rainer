@@ -6,7 +6,7 @@
 
     <groupId>com.threadboardlearn</groupId>
     <artifactId>fretboard-trainer</artifactId>
-    <version>1.5.1</version>
+    <version>1.6.0</version>
     <packaging>jar</packaging>
 
     <name>Fretboard Trainer</name>
@@ -175,6 +175,7 @@
         </profile>
     </profiles>
 </project>
+
 
 
 
