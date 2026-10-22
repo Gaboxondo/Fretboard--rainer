@@ -60,13 +60,22 @@ android {
                 "src/main/java",
                 "../../src/main/java"
             )
-            // Excluye las clases exclusivas de escritorio Swing y javax.sound
-            java.exclude("**/ui/**")
-            java.exclude("**/App.java")
-            java.exclude("**/audio/AudioPlayer.java")
-            java.exclude("**/audio/MicrophoneCapture.java")
         }
     }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    exclude("**/ui/**")
+    exclude("**/App.java")
+    exclude("**/audio/AudioPlayer.java")
+    exclude("**/audio/MicrophoneCapture.java")
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    exclude("**/ui/**")
+    exclude("**/App.java")
+    exclude("**/audio/AudioPlayer.java")
+    exclude("**/audio/MicrophoneCapture.java")
 }
 
 dependencies {
