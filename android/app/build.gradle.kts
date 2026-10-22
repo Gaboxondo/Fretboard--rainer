@@ -78,6 +78,11 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     exclude("**/audio/MicrophoneCapture.java")
 }
 
+tasks.register<Wrapper>("wrapper") {
+    gradleVersion = "8.7"
+    validateDistributionUrl = true
+}
+
 dependencies {
     // Procesamiento de anotaciones Lombok para las clases compartidas
     compileOnly(libs.lombok)
