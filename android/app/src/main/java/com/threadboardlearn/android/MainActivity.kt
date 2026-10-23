@@ -9,13 +9,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
@@ -23,7 +20,6 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -115,7 +111,10 @@ fun TrainerAppScreen(
     var isLastClickCorrect by remember { mutableStateOf<Boolean?>(null) }
     var micEnabled by remember { mutableStateOf(config.isMicrophoneEnabled) }
     var adaptiveEnabled by remember { mutableStateOf(config.isAdaptiveLearning) }
-    var allStrings by remember { mutableStateOf(config.isAllStrings) }
+
+    // Selección de Cuerda (null = Todas las cuerdas, o STRING_1 a STRING_6)
+    var selectedString by remember { mutableStateOf<GuitarString?>(config.selectedString) }
+    var isStringMenuExpanded by remember { mutableStateOf(false) }
 
     // Estados de cuenta atrás y temporizador
     var timeLimitSeconds by remember { mutableStateOf(config.timeLimitSeconds) }
@@ -201,180 +200,400 @@ fun TrainerAppScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // 1. Cabecera con Logotipo Oficial de la Aplicación
+        // 1. Cabecera Horizontal: Logo, Reto con Cuenta Atrás y Botón Empezar/Parar
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // A. Logotipo e Identidad
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.app_logo),
-                    contentDescription = "Fretboard Trainer Logo",
+                    contentDescription = "Logo",
                     modifier = Modifier
-                        .size(46.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(8.dp))
                 )
                 Column {
                     Text(
                         text = "Fretboard Trainer",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "Entrena notas y agilidad",
+                        text = if (isRunning) "● Sesión activa" else "○ Pausado",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFFAAAAAA)
+                        color = if (isRunning) Color(0xFF4CAF50) else Color.Gray,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
-            AssistChip(
-                onClick = {},
-                label = { Text(if (isRunning) "En curso" else "Pausado") },
-                colors = AssistChipDefaults.assistChipColors(
-                    labelColor = if (isRunning) Color(0xFF4CAF50) else Color(0xFF9E9E9E)
-                )
-            )
-        }
-
-        // 2. Tarjeta del Reto Actual con Cuenta Atrás
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Column(
+            // B. Tarjeta Central del Reto & Cuenta Atrás
+            Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .weight(1f)
+                    .padding(horizontal = 10.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 val challenge = currentChallenge
                 if (challenge != null && isRunning) {
-                    Text(
-                        text = "Toca la nota:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                    Text(
-                        text = challenge.targetNote().name,
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "En: ${challenge.targetString().label}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF64B5F6)
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // Feedback de Estado / Mensaje de Temporizador
-                    if (isTimedOut) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0x33F44336)
-                        ) {
-                            Text(
-                                text = "⏱️ ¡Tiempo agotado! Traste(s): ${challenge.validFrets()}",
-                                color = Color(0xFFEF5350),
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                fontSize = 14.sp
-                            )
-                        }
-                    } else if (lastReactionTimeMs != null && isLastClickCorrect == true) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0x334CAF50)
-                        ) {
-                            val sec = String.format(java.util.Locale.US, "%.2f", lastReactionTimeMs!! / 1000.0)
-                            Text(
-                                text = "🎉 ¡Correcto! ($sec s)",
-                                color = Color(0xFF4CAF50),
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                fontSize = 14.sp
-                            )
-                        }
-                    } else if (timeLimitSeconds > 0) {
-                        val timerColor = when {
-                            percentElapsed < 0.55 -> Color(0xFF4CAF50)
-                            percentElapsed < 0.80 -> Color(0xFFFFA726)
-                            else -> Color(0xFFEF5350)
-                        }
-                        Text(
-                            text = "⏱️ ${secondsRemaining}s restantes",
-                            color = timerColor,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
-                    } else {
-                        Text(
-                            text = "⏱️ Modo libre (Sin límite)",
-                            color = Color.Gray,
-                            fontSize = 13.sp
-                        )
-                    }
-
-                    // Barra Visual de Cuenta Atrás (Progreso animado)
-                    if (timeLimitSeconds > 0) {
-                        Spacer(modifier = Modifier.height(10.dp))
-                        val progressFraction = (1.0 - percentElapsed).toFloat().coerceIn(0f, 1f)
-                        val barColor = when {
-                            isTimedOut -> Color(0xFFEF5350)
-                            isLastClickCorrect == true -> Color(0xFF4CAF50)
-                            percentElapsed < 0.55 -> Color(0xFF4CAF50)
-                            percentElapsed < 0.80 -> Color(0xFFFFA726)
-                            else -> Color(0xFFEF5350)
-                        }
-
-                        LinearProgressIndicator(
-                            progress = { if (isTimedOut) 0f else if (isLastClickCorrect == true) 1f else progressFraction },
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .height(8.dp)
-                                .clip(CircleShape),
-                            color = barColor,
-                            trackColor = Color(0xFF2C2C2C)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    IconButton(
-                        onClick = { session.replayChallengeAudio() }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.VolumeUp,
-                            contentDescription = "Escuchar nota de referencia",
-                            tint = Color.White
-                        )
+                        // Nota objetivo y Cuerda
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(
+                                text = challenge.targetNote().name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Column {
+                                Text(
+                                    text = challenge.targetString().label,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF64B5F6)
+                                )
+                                // Mensaje de feedback o tiempo
+                                if (isTimedOut) {
+                                    Text(
+                                        text = "⏱️ ¡Tiempo agotado! Traste(s): ${challenge.validFrets()}",
+                                        color = Color(0xFFEF5350),
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp
+                                    )
+                                } else if (lastReactionTimeMs != null && isLastClickCorrect == true) {
+                                    val sec = String.format(java.util.Locale.US, "%.2f", lastReactionTimeMs!! / 1000.0)
+                                    Text(
+                                        text = "🎉 ¡Correcto! ($sec s)",
+                                        color = Color(0xFF4CAF50),
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp
+                                    )
+                                } else if (timeLimitSeconds > 0) {
+                                    val timerColor = when {
+                                        percentElapsed < 0.55 -> Color(0xFF4CAF50)
+                                        percentElapsed < 0.80 -> Color(0xFFFFA726)
+                                        else -> Color(0xFFEF5350)
+                                    }
+                                    Text(
+                                        text = "⏱️ ${secondsRemaining}s restantes",
+                                        color = timerColor,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp
+                                    )
+                                } else {
+                                    Text(
+                                        text = "⏱️ Sin límite de tiempo",
+                                        color = Color.Gray,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        // Barra de progreso y botón de audio
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (timeLimitSeconds > 0) {
+                                val progressFraction = (1.0 - percentElapsed).toFloat().coerceIn(0f, 1f)
+                                val barColor = when {
+                                    isTimedOut -> Color(0xFFEF5350)
+                                    isLastClickCorrect == true -> Color(0xFF4CAF50)
+                                    percentElapsed < 0.55 -> Color(0xFF4CAF50)
+                                    percentElapsed < 0.80 -> Color(0xFFFFA726)
+                                    else -> Color(0xFFEF5350)
+                                }
+
+                                LinearProgressIndicator(
+                                    progress = { if (isTimedOut) 0f else if (isLastClickCorrect == true) 1f else progressFraction },
+                                    modifier = Modifier
+                                        .width(90.dp)
+                                        .height(6.dp)
+                                        .clip(CircleShape),
+                                    color = barColor,
+                                    trackColor = Color(0xFF2C2C2C)
+                                )
+                            }
+
+                            IconButton(
+                                onClick = { session.replayChallengeAudio() },
+                                modifier = Modifier.size(34.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.VolumeUp,
+                                    contentDescription = "Escuchar nota",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
                     }
                 } else {
-                    Text(
-                        text = "Presiona 'Empezar' para entrenar",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Gray
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Presiona 'Empezar' para entrenar el diapasón",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    }
                 }
+            }
+
+            // C. Botón Principal Empezar / Detener
+            Button(
+                onClick = {
+                    if (isRunning) {
+                        session.stop()
+                    } else {
+                        session.start()
+                    }
+                },
+                modifier = Modifier.height(42.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isRunning) Color(0xFFE53935) else MaterialTheme.colorScheme.primary,
+                    contentColor = if (isRunning) Color.White else Color.Black
+                ),
+                contentPadding = PaddingValues(horizontal = 14.dp)
+            ) {
+                Icon(
+                    imageVector = if (isRunning) Icons.Default.Stop else Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = if (isRunning) "Detener" else "Empezar",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
             }
         }
 
-        // 3. Diapasón Interactivo Táctil (Muestra solución en caso de timeout)
+        // 2. Barra de Control Horizontal: Cuerda, Temporizador, Micrófono y Estadísticas
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Grupo de Controles Izquierdo
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Selector de Cuerda (Todas o específica 1ª a 6ª)
+                Box {
+                    FilterChip(
+                        selected = selectedString != null,
+                        onClick = { isStringMenuExpanded = true },
+                        label = {
+                            val strLabel = when (selectedString) {
+                                null -> "🎸 Todas las cuerdas"
+                                GuitarString.STRING_1 -> "🎸 1ª (Mi)"
+                                GuitarString.STRING_2 -> "🎸 2ª (Si)"
+                                GuitarString.STRING_3 -> "🎸 3ª (Sol)"
+                                GuitarString.STRING_4 -> "🎸 4ª (Re)"
+                                GuitarString.STRING_5 -> "🎸 5ª (La)"
+                                GuitarString.STRING_6 -> "🎸 6ª (Mi)"
+                            }
+                            Text(strLabel, fontSize = 12.sp)
+                        },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    )
+
+                    DropdownMenu(
+                        expanded = isStringMenuExpanded,
+                        onDismissRequest = { isStringMenuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("🎸 Todas las cuerdas (Aleatorio)") },
+                            leadingIcon = if (selectedString == null) {
+                                { Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                            } else null,
+                            onClick = {
+                                config.selectedString = null
+                                selectedString = null
+                                isStringMenuExpanded = false
+                                if (isRunning) session.nextChallenge()
+                            }
+                        )
+                        HorizontalDivider()
+                        val stringOptions = listOf(
+                            GuitarString.STRING_1 to "1ª Cuerda - Mi (E4 / Aguda)",
+                            GuitarString.STRING_2 to "2ª Cuerda - Si (B3)",
+                            GuitarString.STRING_3 to "3ª Cuerda - Sol (G3)",
+                            GuitarString.STRING_4 to "4ª Cuerda - Re (D3)",
+                            GuitarString.STRING_5 to "5ª Cuerda - La (A2)",
+                            GuitarString.STRING_6 to "6ª Cuerda - Mi (E2 / Grave)"
+                        )
+                        stringOptions.forEach { (gStr, text) ->
+                            DropdownMenuItem(
+                                text = { Text(text) },
+                                leadingIcon = if (selectedString == gStr) {
+                                    { Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                                } else null,
+                                onClick = {
+                                    config.selectedString = gStr
+                                    selectedString = gStr
+                                    isStringMenuExpanded = false
+                                    if (isRunning) session.nextChallenge()
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Selector de Cuenta Atrás
+                Box {
+                    FilterChip(
+                        selected = timeLimitSeconds > 0,
+                        onClick = { isTimerMenuExpanded = true },
+                        label = {
+                            Text(
+                                if (timeLimitSeconds > 0) "⏱️ ${timeLimitSeconds}s" else "⏱️ Sin límite",
+                                fontSize = 12.sp
+                            )
+                        },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    )
+
+                    DropdownMenu(
+                        expanded = isTimerMenuExpanded,
+                        onDismissRequest = { isTimerMenuExpanded = false }
+                    ) {
+                        val timerOptions = listOf(
+                            3 to "3 segundos (Rápido)",
+                            5 to "5 segundos (Estándar)",
+                            8 to "8 segundos (Intermedio)",
+                            10 to "10 segundos (Tranquilo)",
+                            0 to "Sin límite de tiempo"
+                        )
+                        timerOptions.forEach { (seconds, text) ->
+                            DropdownMenuItem(
+                                text = { Text(text) },
+                                leadingIcon = if (timeLimitSeconds == seconds) {
+                                    { Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                                } else null,
+                                onClick = {
+                                    config.timeLimitSeconds = seconds
+                                    timeLimitSeconds = seconds
+                                    secondsRemaining = seconds
+                                    percentElapsed = 0.0
+                                    isTimerMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Micrófono
+                FilterChip(
+                    selected = micEnabled,
+                    onClick = {
+                        if (!micEnabled) {
+                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        } else {
+                            config.isMicrophoneEnabled = false
+                            micEnabled = false
+                        }
+                    },
+                    label = { Text("Micro", fontSize = 12.sp) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = if (micEnabled) Icons.Default.Mic else Icons.Default.MicOff,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                )
+
+                // Adaptativo
+                FilterChip(
+                    selected = adaptiveEnabled,
+                    onClick = {
+                        adaptiveEnabled = !adaptiveEnabled
+                        config.isAdaptiveLearning = adaptiveEnabled
+                    },
+                    label = { Text("Adaptativo", fontSize = 12.sp) }
+                )
+            }
+
+            // Estadísticas en chips compactos
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Afinador mini si micrófono está activo
+                if (micEnabled && isRunning && lastPitch != null && lastPitch!!.frequencyHz() > 0) {
+                    val noteText = lastPitch?.note()?.name ?: "--"
+                    val freqText = String.format("%.1f Hz", lastPitch!!.frequencyHz())
+                    AssistChip(
+                        onClick = {},
+                        label = { Text("🎵 $noteText ($freqText)", fontSize = 11.sp, color = Color(0xFF4CAF50)) }
+                    )
+                }
+
+                AssistChip(
+                    onClick = {},
+                    label = { Text("Aciertos: ${stats.correctCount}", fontSize = 11.sp) }
+                )
+                AssistChip(
+                    onClick = {},
+                    label = { Text("Racha: ${stats.currentStreak}", fontSize = 11.sp) }
+                )
+                val accuracy = if (stats.totalRounds > 0) {
+                    (stats.correctCount * 100.0 / stats.totalRounds).toInt()
+                } else 0
+                AssistChip(
+                    onClick = {},
+                    label = { Text("Precisión: $accuracy%", fontSize = 11.sp) }
+                )
+            }
+        }
+
+        // 3. Diapasón Interactivo Táctil Horizontal
         FretboardComposable(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             maxFret = config.maxFret,
             targetString = currentChallenge?.targetString(),
             lastClickedFret = lastClick,
@@ -387,213 +606,6 @@ fun TrainerAppScreen(
                     isLastClickCorrect = correct
                 }
             }
-        )
-
-        // 4. VU Meter & Afinador Micrófono
-        AnimatedVisibility(visible = micEnabled && isRunning) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = "Micrófono",
-                            tint = Color(0xFF4CAF50),
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        val noteText = lastPitch?.note()?.name ?: "--"
-                        val freqText = if (lastPitch != null && lastPitch!!.frequencyHz() > 0) {
-                            String.format("%.1f Hz", lastPitch!!.frequencyHz())
-                        } else "--"
-                        Text(text = "Tono: $noteText ($freqText)", fontSize = 14.sp)
-                    }
-
-                    // Indicador de RMS / Nivel
-                    val rms = (lastPitch?.rms() ?: 0.0).toFloat().coerceIn(0f, 1f)
-                    LinearProgressIndicator(
-                        progress = { rms },
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(8.dp)
-                            .clip(CircleShape),
-                        color = Color(0xFF4CAF50),
-                        trackColor = Color(0xFF333333)
-                    )
-                }
-            }
-        }
-
-        // 5. Estadísticas
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            StatItem(label = "Aciertos", value = "${stats.correctCount}")
-            StatItem(label = "Racha", value = "${stats.currentStreak} (Max: ${stats.bestStreak})")
-            val accuracy = if (stats.totalRounds > 0) {
-                (stats.correctCount * 100.0 / stats.totalRounds).toInt()
-            } else 0
-            StatItem(label = "Precisión", value = "$accuracy%")
-        }
-
-        // 6. Controles y Opciones (Fila 1: Filtros de práctica)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            FilterChip(
-                selected = micEnabled,
-                onClick = {
-                    if (!micEnabled) {
-                        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    } else {
-                        config.isMicrophoneEnabled = false
-                        micEnabled = false
-                    }
-                },
-                label = { Text("Micrófono") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = if (micEnabled) Icons.Default.Mic else Icons.Default.MicOff,
-                        contentDescription = null
-                    )
-                }
-            )
-
-            FilterChip(
-                selected = adaptiveEnabled,
-                onClick = {
-                    adaptiveEnabled = !adaptiveEnabled
-                    config.isAdaptiveLearning = adaptiveEnabled
-                },
-                label = { Text("Adaptativo") }
-            )
-
-            FilterChip(
-                selected = allStrings,
-                onClick = {
-                    val newVal = !allStrings
-                    allStrings = newVal
-                    config.setAllStrings(newVal)
-                },
-                label = { Text("6 Cuerdas") }
-            )
-        }
-
-        // 6.1 Selector de Temporizador / Cuenta Atrás
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Box {
-                FilterChip(
-                    selected = timeLimitSeconds > 0,
-                    onClick = { isTimerMenuExpanded = true },
-                    label = {
-                        Text(if (timeLimitSeconds > 0) "⏱️ Cuenta atrás: ${timeLimitSeconds}s" else "⏱️ Sin límite")
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Timer,
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Cambiar cuenta atrás"
-                        )
-                    }
-                )
-
-                DropdownMenu(
-                    expanded = isTimerMenuExpanded,
-                    onDismissRequest = { isTimerMenuExpanded = false }
-                ) {
-                    val timerOptions = listOf(
-                        3 to "3 segundos (Rápido)",
-                        5 to "5 segundos (Estándar)",
-                        8 to "8 segundos (Intermedio)",
-                        10 to "10 segundos (Tranquilo)",
-                        0 to "Sin límite de tiempo"
-                    )
-
-                    timerOptions.forEach { (seconds, text) ->
-                        DropdownMenuItem(
-                            text = { Text(text) },
-                            leadingIcon = if (timeLimitSeconds == seconds) {
-                                {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            } else null,
-                            onClick = {
-                                config.timeLimitSeconds = seconds
-                                timeLimitSeconds = seconds
-                                secondsRemaining = seconds
-                                percentElapsed = 0.0
-                                isTimerMenuExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        // 7. Botón Principal Empezar / Parar
-        Button(
-            onClick = {
-                if (isRunning) {
-                    session.stop()
-                } else {
-                    session.start()
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isRunning) Color(0xFFE53935) else MaterialTheme.colorScheme.primary,
-                contentColor = if (isRunning) Color.White else Color.Black
-            )
-        ) {
-            Icon(
-                imageVector = if (isRunning) Icons.Default.Stop else Icons.Default.PlayArrow,
-                contentDescription = null
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = if (isRunning) "Detener Sesión" else "Empezar Entrenamiento",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
-fun StatItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
         )
     }
 }
