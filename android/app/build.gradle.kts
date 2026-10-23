@@ -60,6 +60,10 @@ android {
                 "src/main/java",
                 "../../src/main/java"
             )
+            resources.srcDirs(
+                "src/main/resources",
+                "../../src/main/resources"
+            )
         }
     }
 }

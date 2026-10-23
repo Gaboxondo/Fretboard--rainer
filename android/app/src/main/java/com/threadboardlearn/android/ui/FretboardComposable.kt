@@ -7,7 +7,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.threadboardlearn.i18n.I18n
 import com.threadboardlearn.model.GuitarString
 
 @Composable
@@ -29,15 +30,17 @@ fun FretboardComposable(
     lastClickedFret: Pair<GuitarString, Int>? = null,
     isLastClickCorrect: Boolean? = null,
     solutionFrets: List<Int>? = null,
+    openFretLabel: String = I18n.get("fret.open"),
     onFretClicked: (GuitarString, Int) -> Unit
 ) {
-    val strings = GuitarString.values() // E4, B3, G3, D3, A2, E2
+    val strings = remember { GuitarString.values() } // E4, B3, G3, D3, A2, E2
+    val currentOnClick by rememberUpdatedState(onFretClicked)
     val nutWidthDp = 58.dp
 
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
-        // 1. Barra de Números de Traste perfectamente alineada
+        // 1. Barra de Números de Traste perfectamente alineada con cada columna
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -49,7 +52,7 @@ fun FretboardComposable(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "0 / Aire",
+                    text = openFretLabel,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFD4C5A9),
@@ -74,12 +77,11 @@ fun FretboardComposable(
             }
         }
 
-        // 2. Mástil y Cuerdas interactivos
+        // 2. Mástil y Cuerdas interactivos (captura de toques robusta con pointerInput estable)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, fill = false)
-                .heightIn(min = 160.dp, max = 240.dp)
+                .weight(1f)
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color(0xFF221914))
                 .border(1.dp, Color(0xFF4A382A), RoundedCornerShape(12.dp))
@@ -87,15 +89,15 @@ fun FretboardComposable(
             Canvas(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(maxFret, strings) {
+                    .pointerInput(Unit) {
                         detectTapGestures { offset ->
                             val nutWidthPx = nutWidthDp.toPx()
                             val playableWidth = size.width - nutWidthPx
                             val fretWidth = playableWidth / maxFret
 
-                            // 1. Detección exacta de Traste (sin desplazamiento de -1)
+                            // 1. Detección exacta de Traste
                             val clickedFret = if (offset.x < nutWidthPx) {
-                                0 // Cuerda al aire
+                                0 // Cuerda al aire (Cejuela / Nut)
                             } else {
                                 val f = 1 + ((offset.x - nutWidthPx) / fretWidth).toInt()
                                 f.coerceIn(1, maxFret)
@@ -119,7 +121,7 @@ fun FretboardComposable(
                                 }
                             }
 
-                            onFretClicked(closestString, clickedFret)
+                            currentOnClick(closestString, clickedFret)
                         }
                     }
             ) {
@@ -132,21 +134,21 @@ fun FretboardComposable(
                 val usableHeight = (size.height - topPadding - bottomPadding).coerceAtLeast(1f)
                 val stringSpacing = usableHeight / 5.0f
 
-                // A. Fondo diferenciado para Cejuela / Traste 0 (cuerda al aire)
+                // A. Fondo de la Cejuela / Traste 0 (cuerda al aire)
                 drawRect(
                     color = Color(0xFF1B140F),
                     topLeft = Offset(0f, 0f),
                     size = Size(nutWidthPx, size.height)
                 )
 
-                // B. Barra de Cejuela (Nut de hueso/marfil)
+                // B. Barra de Cejuela (Nut de hueso)
                 val nutBarWidth = 7.dp.toPx()
                 drawRect(
                     color = Color(0xFFDCD2BE),
                     topLeft = Offset(nutWidthPx - nutBarWidth, 0f),
                     size = Size(nutBarWidth, size.height)
                 )
-                // Sombra Cejuela
+                // Sombra de Cejuela
                 drawLine(
                     color = Color(0x66000000),
                     start = Offset(nutWidthPx, 0f),
@@ -154,7 +156,7 @@ fun FretboardComposable(
                     strokeWidth = 2.dp.toPx()
                 )
 
-                // C. Marcadores de posición (Inlay dots de nácar en trastes 3, 5, 7, 9, 12)
+                // C. Marcadores de posición (Inlay dots en trastes 3, 5, 7, 9, 12)
                 val inlays = listOf(3, 5, 7, 9)
                 inlays.forEach { fret ->
                     if (fret <= maxFret) {
@@ -284,7 +286,7 @@ fun FretboardComposable(
                     }
                 }
 
-                // H. Feedback visual del toque del usuario (Verde acierto / Rojo fallo)
+                // H. Feedback visual del toque del usuario (Verde acierto / Rojo fallo / Azul exploración)
                 if (lastClickedFret != null && isLastClickCorrect != null) {
                     val (clickedString, clickedFret) = lastClickedFret
                     val stringIndex = strings.indexOf(clickedString)

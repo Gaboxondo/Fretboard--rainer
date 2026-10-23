@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.PlayArrow
@@ -40,8 +41,11 @@ import com.threadboardlearn.engine.Challenge
 import com.threadboardlearn.engine.GameEventListener
 import com.threadboardlearn.engine.TrainingSession
 import com.threadboardlearn.engine.TrainingStats
+import com.threadboardlearn.i18n.I18n
+import com.threadboardlearn.i18n.Language
 import com.threadboardlearn.model.GuitarString
 import com.threadboardlearn.model.TrainingConfig
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
@@ -52,6 +56,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Detección automática del idioma del sistema del móvil:
+        // Si es español -> Español. Si no es español -> Inglés por defecto.
+        val systemLang = Locale.getDefault().language.lowercase()
+        val defaultLang = if (systemLang.startsWith("es")) Language.SPANISH else Language.ENGLISH
+        I18n.setLanguage(defaultLang)
 
         val config = TrainingConfig().apply {
             isMicrophoneEnabled = false // Desactivado por defecto hasta pedir permisos
@@ -85,7 +95,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     TrainerAppScreen(
                         session = session,
-                        config = config
+                        config = config,
+                        audioPlayer = audioPlayer
                     )
                 }
             }
@@ -101,7 +112,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TrainerAppScreen(
     session: TrainingSession,
-    config: TrainingConfig
+    config: TrainingConfig,
+    audioPlayer: AndroidAudioPlayer
 ) {
     var isRunning by remember { mutableStateOf(false) }
     var currentChallenge by remember { mutableStateOf<Challenge?>(null) }
@@ -111,6 +123,13 @@ fun TrainerAppScreen(
     var isLastClickCorrect by remember { mutableStateOf<Boolean?>(null) }
     var micEnabled by remember { mutableStateOf(config.isMicrophoneEnabled) }
     var adaptiveEnabled by remember { mutableStateOf(config.isAdaptiveLearning) }
+
+    // Idioma activo y selector
+    var currentLang by remember { mutableStateOf(I18n.getLanguage()) }
+    var isLangMenuExpanded by remember { mutableStateOf(false) }
+
+    // Nota reproducida en modo libre (cuando la sesión no está activa)
+    var freeExplorationNote by remember { mutableStateOf<String?>(null) }
 
     // Selección de Cuerda (null = Todas las cuerdas, o STRING_1 a STRING_6)
     var selectedString by remember { mutableStateOf<GuitarString?>(config.selectedString) }
@@ -149,6 +168,7 @@ fun TrainerAppScreen(
                 isLastClickCorrect = null
                 isTimedOut = false
                 lastReactionTimeMs = null
+                freeExplorationNote = null
                 secondsRemaining = config.timeLimitSeconds
                 percentElapsed = 0.0
             }
@@ -229,7 +249,11 @@ fun TrainerAppScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = if (isRunning) "● Sesión activa" else "○ Pausado",
+                        text = if (isRunning) {
+                            if (currentLang == Language.SPANISH) "● Sesión activa" else "● Active session"
+                        } else {
+                            if (currentLang == Language.SPANISH) "○ Pausado" else "○ Paused"
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = if (isRunning) Color(0xFF4CAF50) else Color.Gray,
                         fontWeight = FontWeight.SemiBold
@@ -237,7 +261,7 @@ fun TrainerAppScreen(
                 }
             }
 
-            // B. Tarjeta Central del Reto & Cuenta Atrás
+            // B. Tarjeta Central del Reto & Cuenta Atrás / Modo Exploración
             Card(
                 modifier = Modifier
                     .weight(1f)
@@ -267,7 +291,7 @@ fun TrainerAppScreen(
                             )
                             Column {
                                 Text(
-                                    text = challenge.targetString().label,
+                                    text = challenge.targetString().localizedLabel,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF64B5F6)
@@ -275,15 +299,15 @@ fun TrainerAppScreen(
                                 // Mensaje de feedback o tiempo
                                 if (isTimedOut) {
                                     Text(
-                                        text = "⏱️ ¡Tiempo agotado! Traste(s): ${challenge.validFrets()}",
+                                        text = I18n.get("challenge.timeout", challenge.validFrets().toString()),
                                         color = Color(0xFFEF5350),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
                                     )
                                 } else if (lastReactionTimeMs != null && isLastClickCorrect == true) {
-                                    val sec = String.format(java.util.Locale.US, "%.2f", lastReactionTimeMs!! / 1000.0)
+                                    val sec = String.format(Locale.US, "%.2f", lastReactionTimeMs!! / 1000.0)
                                     Text(
-                                        text = "🎉 ¡Correcto! ($sec s)",
+                                        text = I18n.get("challenge.success", sec),
                                         color = Color(0xFF4CAF50),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
@@ -295,14 +319,14 @@ fun TrainerAppScreen(
                                         else -> Color(0xFFEF5350)
                                     }
                                     Text(
-                                        text = "⏱️ ${secondsRemaining}s restantes",
+                                        text = I18n.get("challenge.timer_remaining", secondsRemaining),
                                         color = timerColor,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
                                     )
                                 } else {
                                     Text(
-                                        text = "⏱️ Sin límite de tiempo",
+                                        text = I18n.get("challenge.timer_no_limit"),
                                         color = Color.Gray,
                                         fontSize = 12.sp
                                     )
@@ -342,7 +366,7 @@ fun TrainerAppScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.VolumeUp,
-                                    contentDescription = "Escuchar nota",
+                                    contentDescription = I18n.get("challenge.hear_note"),
                                     tint = Color.White,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -357,9 +381,10 @@ fun TrainerAppScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Presiona 'Empezar' para entrenar el diapasón",
+                            text = freeExplorationNote ?: I18n.get("challenge.reset_instruction"),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
+                            fontWeight = if (freeExplorationNote != null) FontWeight.Bold else FontWeight.Normal,
+                            color = if (freeExplorationNote != null) Color(0xFFFFD54F) else Color.Gray
                         )
                     }
                 }
@@ -389,14 +414,18 @@ fun TrainerAppScreen(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = if (isRunning) "Detener" else "Empezar",
+                    text = if (isRunning) {
+                        if (currentLang == Language.SPANISH) "Detener" else "Stop"
+                    } else {
+                        if (currentLang == Language.SPANISH) "Empezar" else "Start"
+                    },
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
             }
         }
 
-        // 2. Barra de Control Horizontal: Cuerda, Temporizador, Micrófono y Estadísticas
+        // 2. Barra de Control Horizontal: Cuerda, Temporizador, Micrófono, Idioma y Estadísticas
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -413,16 +442,12 @@ fun TrainerAppScreen(
                         selected = selectedString != null,
                         onClick = { isStringMenuExpanded = true },
                         label = {
-                            val strLabel = when (selectedString) {
-                                null -> "🎸 Todas las cuerdas"
-                                GuitarString.STRING_1 -> "🎸 1ª (Mi)"
-                                GuitarString.STRING_2 -> "🎸 2ª (Si)"
-                                GuitarString.STRING_3 -> "🎸 3ª (Sol)"
-                                GuitarString.STRING_4 -> "🎸 4ª (Re)"
-                                GuitarString.STRING_5 -> "🎸 5ª (La)"
-                                GuitarString.STRING_6 -> "🎸 6ª (Mi)"
+                            val strLabel = if (selectedString == null) {
+                                I18n.get("control.all_strings")
+                            } else {
+                                selectedString!!.localizedLabel
                             }
-                            Text(strLabel, fontSize = 12.sp)
+                            Text("🎸 $strLabel", fontSize = 12.sp)
                         },
                         trailingIcon = {
                             Icon(
@@ -438,7 +463,7 @@ fun TrainerAppScreen(
                         onDismissRequest = { isStringMenuExpanded = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("🎸 Todas las cuerdas (Aleatorio)") },
+                            text = { Text("🎸 " + I18n.get("control.all_strings")) },
                             leadingIcon = if (selectedString == null) {
                                 { Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                             } else null,
@@ -450,17 +475,9 @@ fun TrainerAppScreen(
                             }
                         )
                         HorizontalDivider()
-                        val stringOptions = listOf(
-                            GuitarString.STRING_1 to "1ª Cuerda - Mi (E4 / Aguda)",
-                            GuitarString.STRING_2 to "2ª Cuerda - Si (B3)",
-                            GuitarString.STRING_3 to "3ª Cuerda - Sol (G3)",
-                            GuitarString.STRING_4 to "4ª Cuerda - Re (D3)",
-                            GuitarString.STRING_5 to "5ª Cuerda - La (A2)",
-                            GuitarString.STRING_6 to "6ª Cuerda - Mi (E2 / Grave)"
-                        )
-                        stringOptions.forEach { (gStr, text) ->
+                        GuitarString.values().forEach { gStr ->
                             DropdownMenuItem(
-                                text = { Text(text) },
+                                text = { Text(gStr.localizedLabel) },
                                 leadingIcon = if (selectedString == gStr) {
                                     { Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                                 } else null,
@@ -482,7 +499,7 @@ fun TrainerAppScreen(
                         onClick = { isTimerMenuExpanded = true },
                         label = {
                             Text(
-                                if (timeLimitSeconds > 0) "⏱️ ${timeLimitSeconds}s" else "⏱️ Sin límite",
+                                if (timeLimitSeconds > 0) "⏱️ ${timeLimitSeconds}s" else "⏱️ " + I18n.get("control.time.none"),
                                 fontSize = 12.sp
                             )
                         },
@@ -500,11 +517,11 @@ fun TrainerAppScreen(
                         onDismissRequest = { isTimerMenuExpanded = false }
                     ) {
                         val timerOptions = listOf(
-                            3 to "3 segundos (Rápido)",
-                            5 to "5 segundos (Estándar)",
-                            8 to "8 segundos (Intermedio)",
-                            10 to "10 segundos (Tranquilo)",
-                            0 to "Sin límite de tiempo"
+                            3 to (if (currentLang == Language.SPANISH) "3 segundos (Rápido)" else "3 seconds (Fast)"),
+                            5 to (if (currentLang == Language.SPANISH) "5 segundos (Estándar)" else "5 seconds (Standard)"),
+                            8 to (if (currentLang == Language.SPANISH) "8 segundos (Intermedio)" else "8 seconds (Intermediate)"),
+                            10 to (if (currentLang == Language.SPANISH) "10 segundos (Tranquilo)" else "10 seconds (Relaxed)"),
+                            0 to I18n.get("control.time.none")
                         )
                         timerOptions.forEach { (seconds, text) ->
                             DropdownMenuItem(
@@ -524,6 +541,59 @@ fun TrainerAppScreen(
                     }
                 }
 
+                // Selector de Idioma (Español / English)
+                Box {
+                    FilterChip(
+                        selected = true,
+                        onClick = { isLangMenuExpanded = true },
+                        label = {
+                            Text(if (currentLang == Language.SPANISH) "🇪🇸 ES" else "🇬🇧 EN", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = "Language",
+                                modifier = Modifier.size(16.dp)
+                            )
+                        },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    )
+
+                    DropdownMenu(
+                        expanded = isLangMenuExpanded,
+                        onDismissRequest = { isLangMenuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("🇪🇸 Español") },
+                            leadingIcon = if (currentLang == Language.SPANISH) {
+                                { Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                            } else null,
+                            onClick = {
+                                I18n.setLanguage(Language.SPANISH)
+                                currentLang = Language.SPANISH
+                                isLangMenuExpanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("🇬🇧 English") },
+                            leadingIcon = if (currentLang == Language.ENGLISH) {
+                                { Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                            } else null,
+                            onClick = {
+                                I18n.setLanguage(Language.ENGLISH)
+                                currentLang = Language.ENGLISH
+                                isLangMenuExpanded = false
+                            }
+                        )
+                    }
+                }
+
                 // Micrófono
                 FilterChip(
                     selected = micEnabled,
@@ -535,7 +605,7 @@ fun TrainerAppScreen(
                             micEnabled = false
                         }
                     },
-                    label = { Text("Micro", fontSize = 12.sp) },
+                    label = { Text(if (currentLang == Language.SPANISH) "Micro" else "Mic", fontSize = 12.sp) },
                     leadingIcon = {
                         Icon(
                             imageVector = if (micEnabled) Icons.Default.Mic else Icons.Default.MicOff,
@@ -552,7 +622,7 @@ fun TrainerAppScreen(
                         adaptiveEnabled = !adaptiveEnabled
                         config.isAdaptiveLearning = adaptiveEnabled
                     },
-                    label = { Text("Adaptativo", fontSize = 12.sp) }
+                    label = { Text(if (currentLang == Language.SPANISH) "Adaptativo" else "Adaptive", fontSize = 12.sp) }
                 )
             }
 
@@ -564,32 +634,37 @@ fun TrainerAppScreen(
                 // Afinador mini si micrófono está activo
                 if (micEnabled && isRunning && lastPitch != null && lastPitch!!.frequencyHz() > 0) {
                     val noteText = lastPitch?.note()?.name ?: "--"
-                    val freqText = String.format("%.1f Hz", lastPitch!!.frequencyHz())
+                    val freqText = String.format(Locale.US, "%.1f Hz", lastPitch!!.frequencyHz())
                     AssistChip(
                         onClick = {},
                         label = { Text("🎵 $noteText ($freqText)", fontSize = 11.sp, color = Color(0xFF4CAF50)) }
                     )
                 }
 
+                val hitsLabel = if (currentLang == Language.SPANISH) "Aciertos" else "Hits"
+                val streakLabel = if (currentLang == Language.SPANISH) "Racha" else "Streak"
+                val accuracyLabel = if (currentLang == Language.SPANISH) "Precisión" else "Accuracy"
+
                 AssistChip(
                     onClick = {},
-                    label = { Text("Aciertos: ${stats.correctCount}", fontSize = 11.sp) }
+                    label = { Text("$hitsLabel: ${stats.correctCount}", fontSize = 11.sp) }
                 )
                 AssistChip(
                     onClick = {},
-                    label = { Text("Racha: ${stats.currentStreak}", fontSize = 11.sp) }
+                    label = { Text("$streakLabel: ${stats.currentStreak}", fontSize = 11.sp) }
                 )
                 val accuracy = if (stats.totalRounds > 0) {
                     (stats.correctCount * 100.0 / stats.totalRounds).toInt()
                 } else 0
                 AssistChip(
                     onClick = {},
-                    label = { Text("Precisión: $accuracy%", fontSize = 11.sp) }
+                    label = { Text("$accuracyLabel: $accuracy%", fontSize = 11.sp) }
                 )
             }
         }
 
         // 3. Diapasón Interactivo Táctil Horizontal
+        // Funciona tanto durante la sesión como en modo libre interactivo
         FretboardComposable(
             modifier = Modifier
                 .fillMaxWidth()
@@ -599,11 +674,21 @@ fun TrainerAppScreen(
             lastClickedFret = lastClick,
             isLastClickCorrect = isLastClickCorrect,
             solutionFrets = if (isTimedOut) currentChallenge?.validFrets() else null,
+            openFretLabel = I18n.get("fret.open"),
             onFretClicked = { string: GuitarString, fret: Int ->
-                if (isRunning && !isTimedOut) {
-                    lastClick = Pair(string, fret)
-                    val correct = session.submitFretClick(string, fret)
-                    isLastClickCorrect = correct
+                lastClick = Pair(string, fret)
+                if (isRunning) {
+                    if (!isTimedOut) {
+                        val correct = session.submitFretClick(string, fret)
+                        isLastClickCorrect = correct
+                    }
+                } else {
+                    // Modo interactivo libre: responde inmediatamente a cualquier clic con sonido y nombre de nota
+                    isLastClickCorrect = true
+                    audioPlayer.playGuitarNote(string, fret)
+                    val note = string.getNoteAtFret(fret)
+                    val fretDesc = if (fret == 0) I18n.get("fret.open") else "Traste/Fret $fret"
+                    freeExplorationNote = "🎸 ${string.localizedShortLabel} ($fretDesc) → ${note.name}"
                 }
             }
         )

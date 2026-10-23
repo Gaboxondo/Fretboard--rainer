@@ -102,8 +102,30 @@ public final class I18n {
         try {
             currentBundle = ResourceBundle.getBundle(BUNDLE_BASE_NAME, currentLanguage.getLocale(),
                     ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES));
-        } catch (MissingResourceException e) {
-            System.err.println("No se encontró el ResourceBundle para " + currentLanguage + ": " + e.getMessage());
+        } catch (Throwable t) {
+            try {
+                currentBundle = ResourceBundle.getBundle(BUNDLE_BASE_NAME, currentLanguage.getLocale());
+            } catch (Throwable t2) {
+                try {
+                    String path = "i18n/messages_" + currentLanguage.getCode() + ".properties";
+                    java.io.InputStream stream = I18n.class.getClassLoader() != null
+                            ? I18n.class.getClassLoader().getResourceAsStream(path)
+                            : ClassLoader.getSystemResourceAsStream(path);
+                    if (stream == null) {
+                        stream = I18n.class.getResourceAsStream("/" + path);
+                    }
+                    if (stream == null) {
+                        stream = I18n.class.getResourceAsStream("/i18n/messages.properties");
+                    }
+                    if (stream != null) {
+                        try (java.io.InputStreamReader reader = new java.io.InputStreamReader(stream, java.nio.charset.StandardCharsets.UTF_8)) {
+                            currentBundle = new java.util.PropertyResourceBundle(reader);
+                        }
+                    }
+                } catch (Exception ex) {
+                    System.err.println("No se encontró el ResourceBundle para " + currentLanguage + ": " + ex.getMessage());
+                }
+            }
         }
     }
 }
