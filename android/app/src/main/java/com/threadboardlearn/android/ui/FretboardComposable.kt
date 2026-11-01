@@ -134,6 +134,13 @@ fun FretboardComposable(
                 val usableHeight = (size.height - topPadding - bottomPadding).coerceAtLeast(1f)
                 val stringSpacing = usableHeight / 5.0f
 
+                // 0. Fondo general del diapasón (madera de palisandro)
+                drawRect(
+                    color = Color(0xFF221914),
+                    topLeft = Offset(0f, 0f),
+                    size = size
+                )
+
                 // A. Fondo de la Cejuela / Traste 0 (cuerda al aire)
                 drawRect(
                     color = Color(0xFF1B140F),

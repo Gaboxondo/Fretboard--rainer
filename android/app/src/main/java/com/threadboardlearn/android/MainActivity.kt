@@ -10,7 +10,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -220,6 +223,7 @@ fun TrainerAppScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .safeDrawingPadding()
             .padding(horizontal = 14.dp, vertical = 6.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
@@ -425,17 +429,44 @@ fun TrainerAppScreen(
             }
         }
 
-        // 2. Barra de Control Horizontal: Cuerda, Temporizador, Micrófono, Idioma y Estadísticas
+        // 2. Diapasón Interactivo Táctil Horizontal (Centro de la pantalla)
+        // Funciona tanto durante la sesión como en modo libre interactivo
+        FretboardComposable(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            maxFret = config.maxFret,
+            targetString = currentChallenge?.targetString(),
+            lastClickedFret = lastClick,
+            isLastClickCorrect = isLastClickCorrect,
+            solutionFrets = if (isTimedOut) currentChallenge?.validFrets() else null,
+            openFretLabel = I18n.get("fret.open"),
+            onFretClicked = { string: GuitarString, fret: Int ->
+                lastClick = Pair(string, fret)
+                if (isRunning) {
+                    if (!isTimedOut) {
+                        val correct = session.submitFretClick(string, fret)
+                        isLastClickCorrect = correct
+                    }
+                } else {
+                    // Modo interactivo libre: responde inmediatamente a cualquier clic con sonido y nombre de nota
+                    isLastClickCorrect = true
+                    audioPlayer.playGuitarNote(string, fret)
+                    val note = string.getNoteAtFret(fret)
+                    val fretDesc = if (fret == 0) I18n.get("fret.open") else "Traste/Fret $fret"
+                    freeExplorationNote = "🎸 ${string.localizedShortLabel} ($fretDesc) → ${note.name}"
+                }
+            }
+        )
+
+        // 3. Barra Inferior de Control y Estadísticas Horizontal (Scrollable para adaptarse a cualquier resolución)
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Grupo de Controles Izquierdo
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
                 // Selector de Cuerda (Todas o específica 1ª a 6ª)
                 Box {
                     FilterChip(
@@ -624,73 +655,44 @@ fun TrainerAppScreen(
                     },
                     label = { Text(if (currentLang == Language.SPANISH) "Adaptativo" else "Adaptive", fontSize = 12.sp) }
                 )
-            }
 
-            // Estadísticas en chips compactos
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                // Afinador mini si micrófono está activo
-                if (micEnabled && isRunning && lastPitch != null && lastPitch!!.frequencyHz() > 0) {
-                    val noteText = lastPitch?.note()?.name ?: "--"
-                    val freqText = String.format(Locale.US, "%.1f Hz", lastPitch!!.frequencyHz())
-                    AssistChip(
-                        onClick = {},
-                        label = { Text("🎵 $noteText ($freqText)", fontSize = 11.sp, color = Color(0xFF4CAF50)) }
-                    )
-                }
+            // Separador visual entre controles y estadísticas
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(24.dp)
+                    .background(Color(0xFF3E3E3E))
+            )
 
-                val hitsLabel = if (currentLang == Language.SPANISH) "Aciertos" else "Hits"
-                val streakLabel = if (currentLang == Language.SPANISH) "Racha" else "Streak"
-                val accuracyLabel = if (currentLang == Language.SPANISH) "Precisión" else "Accuracy"
-
+            // Afinador mini si micrófono está activo
+            if (micEnabled && isRunning && lastPitch != null && lastPitch!!.frequencyHz() > 0) {
+                val noteText = lastPitch?.note()?.name ?: "--"
+                val freqText = String.format(Locale.US, "%.1f Hz", lastPitch!!.frequencyHz())
                 AssistChip(
                     onClick = {},
-                    label = { Text("$hitsLabel: ${stats.correctCount}", fontSize = 11.sp) }
-                )
-                AssistChip(
-                    onClick = {},
-                    label = { Text("$streakLabel: ${stats.currentStreak}", fontSize = 11.sp) }
-                )
-                val accuracy = if (stats.totalRounds > 0) {
-                    (stats.correctCount * 100.0 / stats.totalRounds).toInt()
-                } else 0
-                AssistChip(
-                    onClick = {},
-                    label = { Text("$accuracyLabel: $accuracy%", fontSize = 11.sp) }
+                    label = { Text("🎵 $noteText ($freqText)", fontSize = 11.sp, color = Color(0xFF4CAF50)) }
                 )
             }
+
+            val hitsLabel = if (currentLang == Language.SPANISH) "Aciertos" else "Hits"
+            val streakLabel = if (currentLang == Language.SPANISH) "Racha" else "Streak"
+            val accuracyLabel = if (currentLang == Language.SPANISH) "Precisión" else "Accuracy"
+
+            AssistChip(
+                onClick = {},
+                label = { Text("$hitsLabel: ${stats.correctCount}", fontSize = 11.sp) }
+            )
+            AssistChip(
+                onClick = {},
+                label = { Text("$streakLabel: ${stats.currentStreak}", fontSize = 11.sp) }
+            )
+            val accuracy = if (stats.totalRounds > 0) {
+                (stats.correctCount * 100.0 / stats.totalRounds).toInt()
+            } else 0
+            AssistChip(
+                onClick = {},
+                label = { Text("$accuracyLabel: $accuracy%", fontSize = 11.sp) }
+            )
         }
-
-        // 3. Diapasón Interactivo Táctil Horizontal
-        // Funciona tanto durante la sesión como en modo libre interactivo
-        FretboardComposable(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            maxFret = config.maxFret,
-            targetString = currentChallenge?.targetString(),
-            lastClickedFret = lastClick,
-            isLastClickCorrect = isLastClickCorrect,
-            solutionFrets = if (isTimedOut) currentChallenge?.validFrets() else null,
-            openFretLabel = I18n.get("fret.open"),
-            onFretClicked = { string: GuitarString, fret: Int ->
-                lastClick = Pair(string, fret)
-                if (isRunning) {
-                    if (!isTimedOut) {
-                        val correct = session.submitFretClick(string, fret)
-                        isLastClickCorrect = correct
-                    }
-                } else {
-                    // Modo interactivo libre: responde inmediatamente a cualquier clic con sonido y nombre de nota
-                    isLastClickCorrect = true
-                    audioPlayer.playGuitarNote(string, fret)
-                    val note = string.getNoteAtFret(fret)
-                    val fretDesc = if (fret == 0) I18n.get("fret.open") else "Traste/Fret $fret"
-                    freeExplorationNote = "🎸 ${string.localizedShortLabel} ($fretDesc) → ${note.name}"
-                }
-            }
-        )
     }
 }
