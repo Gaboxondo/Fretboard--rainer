@@ -11,8 +11,8 @@ android {
         applicationId = "com.threadboardlearn.android"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.6.3"
+        versionCode = 5
+        versionName = "1.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -108,3 +108,4 @@ dependencies {
 
     debugImplementation(libs.androidx.ui.tooling)
 }
+

@@ -16,7 +16,7 @@
 
 <br/>
 
-[![Version](https://img.shields.io/badge/Release-v1.6.3-orange?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
+[![Version](https://img.shields.io/badge/Release-v1.7.0-orange?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
 [![Download Windows](https://img.shields.io/badge/Download-Windows_EXE-0078D7?style=flat-square&logo=windows&logoColor=white)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
 [![Download Android](https://img.shields.io/badge/Descargar-Android_APK-3DDC84?style=flat-square&logo=android&logoColor=white)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
 [![i18n](https://img.shields.io/badge/i18n-Espa%C3%B1ol_%7C_English-0984e3?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
@@ -239,7 +239,7 @@ mvn clean package
 mvn exec:java -Dexec.mainClass="com.threadboardlearn.App"
 
 # O ejecutando el Fat JAR empaquetado:
-java -jar target/fretboard-trainer-1.3.0.jar
+java -jar target/fretboard-trainer-1.7.0.jar
 ```
 
 En Windows también puedes hacer doble clic en **`run.bat`** o ejecutar en terminal PowerShell **`./run.ps1`**.
@@ -294,3 +294,4 @@ Consulta [`docs/ANDROID.md`](../ANDROID.md) para más detalles sobre la arquitec
 
 ## 📄 Licencia
 Este proyecto está bajo la **Licencia MIT** - consulta el archivo [LICENSE](../../LICENSE) para más detalles.
+
