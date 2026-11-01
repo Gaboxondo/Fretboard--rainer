@@ -1,76 +1,92 @@
-# Fretboard Trainer - Versión Android
+# 🎸 Fretboard Trainer - Android Version
 
-Esta carpeta (`android/`) contiene la aplicación nativa para Android de **Fretboard Trainer**, desarrollada con **Jetpack Compose** y reutilizando la lógica musical, el motor de entrenamiento y el algoritmo de detección de tono por micrófono (YIN DSP) del repositorio principal.
+**Language:** English • [Español (Spanish)](es/ANDROID.md)
+
+This directory (`android/`) contains the native Android application for **Fretboard Trainer**, engineered with **Jetpack Compose** and **Material 3**. It directly reuses the musical model, adaptive learning training engine, and real-time DSP pitch detection algorithm (YIN autocorrelation) from the root Java codebase.
 
 ---
 
-## 🏗️ Arquitectura de Reutilización
+## 📥 Download Precompiled APK
 
-El proyecto Android aprovecha la configuración `sourceSets` de Gradle para compilar directamente los paquetes Java compartidos desde `../../src/main/java`, evitando duplicidad de código:
+You do not need to build from source to try the app on your Android device:
+
+* **Direct Download**: Download the latest APK from [GitHub Releases](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) by grabbing **`FretboardTrainer-Android.apk`**.
+* **Installation**: Open the APK file on your Android device. If prompted by Android, enable "Install unknown apps" for your web browser or file manager.
+
+---
+
+## 🏗️ Code Reuse & Technical Architecture
+
+The Android application leverages Gradle `sourceSets` to directly compile shared Java classes from `../../src/main/java`, guaranteeing parity with the desktop application and preventing code duplication:
 
 ```
 ThreadBoardlearn/
 ├── src/main/java/com/threadboardlearn/
-│   ├── model/         <-- Compartido al 100% (Note, GuitarString, Tuning, TrainingConfig)
-│   ├── engine/        <-- Compartido al 100% (TrainingSession, AdaptiveLearningEngine, Stats)
-│   ├── dsp/           <-- Compartido al 100% (YinPitchDetector, PitchDetectionResult)
-│   ├── i18n/          <-- Compartido (MessageBundle, recursos)
-│   ├── audio/         <-- Interfaces abstractas (AudioPlayerService, MicrophoneCaptureService)
-│   └── ui/            <-- Exclusivo de Desktop (Swing / FlatLaf)
+│   ├── model/         <-- 100% Shared (Note, GuitarString, Tuning, TrainingConfig)
+│   ├── engine/        <-- 100% Shared (TrainingSession, AdaptiveLearningEngine, Stats)
+│   ├── dsp/           <-- 100% Shared (YinPitchDetector, PitchDetectionResult)
+│   ├── i18n/          <-- Shared (MessageBundle, language resources)
+│   ├── audio/         <-- Abstract interfaces (AudioPlayerService, MicrophoneCaptureService)
+│   └── ui/            <-- Desktop-only (Swing / FlatLaf)
 │
 └── android/
     ├── app/src/main/java/com/threadboardlearn/android/
     │   ├── audio/
-    │   │   ├── AndroidAudioRecordCapture.kt  (Implementa MicrophoneCaptureService con AudioRecord)
-    │   │   └── AndroidAudioPlayer.kt         (Implementa AudioPlayerService con AudioTrack)
+    │   │   ├── AndroidAudioRecordCapture.kt  (Implements MicrophoneCaptureService with AudioRecord)
+    │   │   └── AndroidAudioPlayer.kt         (Implements AudioPlayerService with AudioTrack)
     │   ├── ui/
-    │   │   └── FretboardComposable.kt        (Diapasón interactivo táctil en Jetpack Compose)
-    │   └── MainActivity.kt                   (Pantalla principal con Jetpack Compose y Material 3)
+    │   │   └── FretboardComposable.kt        (Tactile interactive fretboard in Jetpack Compose)
+    │   └── MainActivity.kt                   (Main screen with Jetpack Compose & Material 3)
 ```
 
 ---
 
-## 📱 Características de la Versión Android
+## 📱 Features of the Android Version
 
-1. **Diapasón Táctil Interactivo:**
-   - Dibuja las 6 cuerdas y los 12 trastes con marcadores tradicionales (puntos en trastes 3, 5, 7, 9 y doble punto en 12).
-   - Toca cualquier cuerda y traste en la pantalla para responder a los retos.
-   - Feedback táctil y visual inmediato (verde para aciertos, rojo para fallos).
+1. **Interactive Touch Fretboard:**
+   - Vector rendering of all 6 strings with proportional gauges and 12 frets with standard position markers (inlays on frets 3, 5, 7, 9, and double dots on fret 12).
+   - Tap any string and fret directly on screen to answer challenge notes.
+   - Instant visual and haptic feedback (green for correct, red for misses).
 
-2. **Detección de Tono por Micrófono en Tiempo Real:**
-   - Utiliza `android.media.AudioRecord` a 44.1 kHz.
-   - Pasa los buffers de audio directamente al detector `YinPitchDetector` original sin cambios.
-   - Permite practicar con una guitarra acústica o eléctrica real conectada o al aire.
-   - Incluye medidor VU de señal y afinador en pantalla.
+2. **Real-Time Microphone Pitch Detection:**
+   - Linear PCM audio capture using `android.media.AudioRecord` at 44.1 kHz.
+   - Audio buffers are fed directly into the shared `YinPitchDetector` without modifications.
+   - Practice with acoustic, classical, or electric guitar (via USB audio interface or built-in microphone).
+   - Live VU audio level meter and real-time detected note badge.
 
-3. **Motor de Aprendizaje Adaptativo:**
-   - Registra fallos, aciertos y tiempos de respuesta para ponderar las notas con las que más dificultad tiene el usuario.
+3. **Smart Adaptive Learning Engine:**
+   - Tracks misses, correct answers, and response times to dynamically weight and prioritize notes you find most challenging.
 
-4. **Feedback de Audio:**
-   - Síntesis de armónicos con decaimiento natural de cuerda de guitarra y arpegios de acierto/fallo mediante `AudioTrack`.
+4. **Acoustic Synthesizer & Audio Feedback:**
+   - Acoustic harmonic synthesis with realistic string decay and success/failure audio cues via `AudioTrack`.
+   - Automatic microphone suppression while reference notes are playing to avoid false pitch triggers.
 
----
-
-## 🚀 Cómo abrir y compilar en Android Studio
-
-1. Abre **Android Studio**.
-2. Selecciona **File > Open** y elige la carpeta `c:\Proyectos\ThreadBoardlearn\android`.
-3. Android Studio sincronizará el proyecto Gradle automáticamente.
-4. Conecta un dispositivo Android (o inicia un emulador) y pulsa **Run 'app'** (`Shift + F10`).
+5. **Multi-Language Support (i18n):**
+   - Automatically detects system locale (English or Spanish) and provides an in-app language switch selector in the top bar.
 
 ---
 
-## 🛠️ Compilación por Línea de Comandos
+## 🚀 Opening and Building in Android Studio
 
-Desde la carpeta `android/`:
+1. Open **Android Studio** (Iguana, Jellyfish, or newer).
+2. Select **File > Open** and choose the `android/` directory inside this repository.
+3. Allow Android Studio to automatically sync the Gradle project.
+4. Connect a physical Android device with USB debugging enabled (or launch an Android emulator with API 26+).
+5. Click **Run 'app'** (`Shift + F10`).
+
+---
+
+## 🛠️ Command-Line Build
+
+From the `android/` directory:
 
 ```bash
-# En Windows:
-gradlew.bat assembleDebug
+# On Windows (PowerShell / CMD):
+.\gradlew.bat assembleDebug
 
-# En Linux / macOS:
+# On Linux / macOS:
 ./gradlew assembleDebug
 ```
 
-El APK generado se encontrará en:
+The resulting debug APK is located at:
 `android/app/build/outputs/apk/debug/app-debug.apk`

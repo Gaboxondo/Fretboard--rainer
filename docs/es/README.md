@@ -288,7 +288,7 @@ Este repositorio incluye una aplicación nativa para Android en la carpeta [`and
 - **Entrenamiento Adaptativo:** Mismo motor inteligente que prioriza las notas donde más fallas.
 - **Descarga Directa:** APK precompilado disponible en cada release como [`FretboardTrainer-Android.apk`](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest).
 
-Consulta [`docs/ANDROID.md`](../ANDROID.md) para más detalles sobre la arquitectura y cómo compilarlo en Android Studio.
+Consulta [`ANDROID.md`](ANDROID.md) (o la versión en inglés en [`docs/ANDROID.md`](../ANDROID.md)) para más detalles sobre la arquitectura y cómo compilarlo en Android Studio.
 
 ---
 
