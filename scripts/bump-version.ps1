@@ -62,13 +62,13 @@ if (-not [string]::IsNullOrWhiteSpace($CustomVersion)) {
         $changedFiles = git diff-tree --no-commit-id --name-only -r HEAD 2>$null
         if ($changedFiles) {
             foreach ($f in $changedFiles) {
-                if ($f -match '^src/main/' -or $f -match '^installer/' -or $f -eq 'pom.xml') {
+                if ($f -match '^src/main/' -or $f -match '^installer/' -or $f -match '^android/' -or $f -eq 'pom.xml') {
                     $hasSourceChanges = $true
                     break
                 }
             }
             if (-not $hasSourceChanges) {
-                Write-Host "No hay cambios en código fuente (src/main/, installer/, pom.xml). Archivos en commit: $($changedFiles -join ', ')"
+                Write-Host "No hay cambios en código fuente (src/main/, installer/, android/, pom.xml). Archivos en commit: $($changedFiles -join ', ')"
             }
         } else {
             $hasSourceChanges = $true
@@ -79,7 +79,7 @@ if (-not [string]::IsNullOrWhiteSpace($CustomVersion)) {
 
     # 3.2. Clasificación según archivos y Conventional Commits
     if (-not $hasSourceChanges) {
-        Write-Host "No se detectaron cambios en archivos de código fuente (src/main/, installer/, pom.xml). Omitiendo release."
+        Write-Host "No se detectaron cambios en archivos de código fuente (src/main/, installer/, android/, pom.xml). Omitiendo release."
         $determinedBump = "none"
         $shouldRelease = $false
     } elseif ($haystack -match 'breaking change' -or $haystack -match '\b(feat|fix)(\([^)]+\))?!:') {
@@ -161,9 +161,26 @@ foreach ($rPath in $readmeFiles) {
         $readme = Get-Content $rPath -Raw
         $readme = [regex]::Replace($readme, 'Release-v[0-9.]+-orange', "Release-v$newVersion-orange")
         $readme = [regex]::Replace($readme, 'fretboard-trainer-[0-9.]+\.jar', "fretboard-trainer-$newVersion.jar")
+        $readme = [regex]::Replace($readme, 'FretboardTrainer-v[0-9.]+-Android\.apk', "FretboardTrainer-v$newVersion-Android.apk")
+        $readme = [regex]::Replace($readme, 'FretboardTrainer-v[0-9.]+-Setup\.exe', "FretboardTrainer-v$newVersion-Setup.exe")
+        $readme = [regex]::Replace($readme, 'FretboardTrainer-v[0-9.]+-Windows\.zip', "FretboardTrainer-v$newVersion-Windows.zip")
         Set-Content -Path $rPath -Value $readme -Encoding UTF8
         Write-Host "$rPath actualizado a versión $newVersion"
     }
+}
+
+# 6.1 Actualizar android/app/build.gradle.kts
+$gradleKtsPath = "android/app/build.gradle.kts"
+if (Test-Path $gradleKtsPath) {
+    $gradleKts = Get-Content $gradleKtsPath -Raw
+    $gradleKts = [regex]::Replace($gradleKts, 'versionName\s*=\s*"[^"]+"', "versionName = `"$newVersion`"")
+    if ($gradleKts -match 'versionCode\s*=\s*(\d+)') {
+        $oldCode = [int]$Matches[1]
+        $newCode = $oldCode + 1
+        $gradleKts = [regex]::Replace($gradleKts, 'versionCode\s*=\s*\d+', "versionCode = $newCode")
+    }
+    Set-Content -Path $gradleKtsPath -Value $gradleKts -Encoding UTF8
+    Write-Host "$gradleKtsPath actualizado con versionName $newVersion"
 }
 
 # 7. Exportar a GitHub Output si estamos en un runner de GitHub Actions

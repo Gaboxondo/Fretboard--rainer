@@ -16,17 +16,22 @@
 
 <br/>
 
-[![Version](https://img.shields.io/badge/Release-v1.4.0-orange?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
+[![Version](https://img.shields.io/badge/Release-v1.6.3-orange?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
 [![Download Windows](https://img.shields.io/badge/Download-Windows_EXE-0078D7?style=flat-square&logo=windows&logoColor=white)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
+[![Download Android](https://img.shields.io/badge/Descargar-Android_APK-3DDC84?style=flat-square&logo=android&logoColor=white)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest)
 [![i18n](https://img.shields.io/badge/i18n-Espa%C3%B1ol_%7C_English-0984e3?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![Audio](https://img.shields.io/badge/Audio-44.1kHz_16--bit_Mono-blueviolet?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
 [![Latency](https://img.shields.io/badge/Latency-%3C20ms_Buffer-emerald?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
-[![Platform](https://img.shields.io/badge/Platform-Windows_|_macOS_|_Linux-lightgrey?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
+[![Platform](https://img.shields.io/badge/Plataforma-Windows_|_Android_|_macOS_|_Linux-lightgrey?style=flat-square)](https://github.com/Gaboxondo/Fretboard--rainer)
 
 <br/>
 
 <a href="https://github.com/Gaboxondo/Fretboard--rainer/releases/latest">
-  <img src="https://img.shields.io/badge/Descargar_para_Windows-FretboardTrainer.exe_(Zero_Setup)-0078D7?style=for-the-badge&logo=windows&logoColor=white" alt="Descargar Instalador Windows" />
+  <img src="https://img.shields.io/badge/Descargar_para_Windows-FretboardTrainer--Setup.exe-0078D7?style=for-the-badge&logo=windows&logoColor=white" alt="Descargar Instalador Windows" />
+</a>
+&nbsp;
+<a href="https://github.com/Gaboxondo/Fretboard--rainer/releases/latest">
+  <img src="https://img.shields.io/badge/Descargar_para_Android-FretboardTrainer.apk-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Descargar APK Android" />
 </a>
 
 <br/><br/>
@@ -200,11 +205,14 @@ com.threadboardlearn
 | Plataforma | Paquete | Cómo Ejecutarlo | Enlace |
 | :--- | :--- | :--- | :--- |
 | **🪟 Windows (Recomendado)** | **`FretboardTrainer-Setup.exe`** (~35 MB) | **Instalador de 1 Clic**: Crea acceso directo en Escritorio y se ejecuta directamente | [⬇️ Descargar Instalador (.exe)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
+| **🤖 Android (APK)** | **`FretboardTrainer-Android.apk`** | Instalación directa: descarga el APK en tu móvil o transfiérelo por USB y pulsa para instalar | [⬇️ Descargar APK Android (.apk)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
 | **🪟 Windows (Portable)** | `FretboardTrainer-Windows.zip` | Descomprime el archivo y haz doble clic en `FretboardTrainer.exe` | [⬇️ Descargar Portable (.zip)](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
 | **☕ Multiplataforma (macOS/Linux)**| `fretboard-trainer.jar` | Ejecuta con Java 21: `java -jar fretboard-trainer.jar` | [⬇️ Descargar JAR](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest) |
 
 > [!TIP]
 > **Usuarios de Windows**: Solo necesitas descargar **`FretboardTrainer-Setup.exe`**. Es un archivo ligero e independiente con el entorno de Java 21 optimizado y su icono de guitarra. No necesitas permisos de administrador ni copiar carpetas a mano.
+>
+> **Usuarios de Android**: Descarga **`FretboardTrainer-Android.apk`** directamente en tu teléfono o tablet Android (o transfiérelo desde el PC) y ábrelo para instalarlo. Si Android te lo solicita, autoriza "Instalar aplicaciones desconocidas" en los ajustes de tu navegador o gestor de archivos.
 
 ---
 
@@ -258,15 +266,29 @@ flowchart TD
     H -->|bug/* o hotfix/*| J["Incrementa PARCHE (ej. 1.0.0 ➔ 1.0.1)"]
     I --> K[Auto-Actualiza pom.xml y README]
     J --> K
-    K --> L[Genera Instalador .exe para Windows con Icono]
+    K --> L[Genera Instaladores (Windows .exe y Android .apk)]
     L --> M[Crea Etiqueta Git vX.Y.Z y Hace Push]
-    M --> N[Publica Release en GitHub con el Ejecutable]
+    M --> N[Publica Release en GitHub con Apps para Windows y Android]
 ```
 
 #### Convenciones de Nombres de Rama:
 - **`feature/<nombre>`** o **`feat/<nombre>`**: Incrementa el **segundo dígito (Menor)** (`1.0.0` ➔ `1.1.0`). Usar para nuevas funcionalidades, modos de práctica o mejoras en la interfaz.
 - **`bug/<nombre>`** o **`bugfix/<nombre>`**: Incrementa el **tercer dígito (Parche)** (`1.0.0` ➔ `1.0.1`). Usar para correcciones de bugs.
 - **`hotfix/<nombre>`**: Incrementa el **tercer dígito (Parche)** (`1.0.0` ➔ `1.0.1`). Usar para parches críticos de producción.
+
+---
+
+<a id="version-android"></a>
+### 📱 Versión Android (Jetpack Compose)
+
+Este repositorio incluye una aplicación nativa para Android en la carpeta [`android/`](../../android/). Reutiliza directamente el modelo musical, motor de práctica adaptativa y el algoritmo DSP de tono YIN desde `src/main/java`:
+
+- **Mástil Táctil:** Diapasón interactivo optimizado para pantallas táctiles de móviles y tablets.
+- **Entrada por Micrófono:** Detección de tono en tiempo real con `AudioRecord` y el algoritmo YIN compartido.
+- **Entrenamiento Adaptativo:** Mismo motor inteligente que prioriza las notas donde más fallas.
+- **Descarga Directa:** APK precompilado disponible en cada release como [`FretboardTrainer-Android.apk`](https://github.com/Gaboxondo/Fretboard--rainer/releases/latest).
+
+Consulta [`docs/ANDROID.md`](../ANDROID.md) para más detalles sobre la arquitectura y cómo compilarlo en Android Studio.
 
 ---
 

@@ -7,6 +7,7 @@ on:
     paths:
       - 'src/main/**'
       - 'installer/**'
+      - 'android/**'
       - 'pom.xml'
   workflow_dispatch:
     inputs:
@@ -30,7 +31,7 @@ permissions:
 
 jobs:
   release:
-    name: Auto-Version & Release Windows App
+    name: Auto-Version & Release (Windows & Android)
     runs-on: windows-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
@@ -47,6 +48,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
 
       - name: Calculate & Bump Version
         id: version
@@ -122,6 +126,22 @@ jobs:
           Copy-Item "target/fretboard-trainer-$ver.jar" "target/dist/"
           Copy-Item "target/fretboard-trainer-$ver.jar" "target/dist/fretboard-trainer.jar"
 
+      - name: Build and Package Android APK
+        if: steps.version.outputs.SHOULD_RELEASE == 'true'
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.version.outputs.NEW_VERSION }}"
+          Write-Host "Compilando APK de Android (v$ver)..."
+          Push-Location android
+          try {
+            .\gradlew.bat assembleDebug --stacktrace
+          } finally {
+            Pop-Location
+          }
+          New-Item -ItemType Directory -Force "target/dist" | Out-Null
+          Copy-Item "android/app/build/outputs/apk/debug/app-debug.apk" "target/dist/FretboardTrainer-v$ver-Android.apk"
+          Copy-Item "android/app/build/outputs/apk/debug/app-debug.apk" "target/dist/FretboardTrainer-Android.apk"
+
       - name: Commit & Push Version Bump and Git Tag
         if: steps.version.outputs.SHOULD_RELEASE == 'true'
         shell: pwsh
@@ -130,7 +150,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add pom.xml README.md
+          git add pom.xml README.md docs/es/README.md android/app/build.gradle.kts
           $status = git status --porcelain
           if ($status) {
             git commit -m "chore(release): bump version to v$ver [skip ci]"
@@ -154,6 +174,8 @@ jobs:
             target/dist/FretboardTrainer-Setup.exe
             target/dist/FretboardTrainer-v${{ steps.version.outputs.NEW_VERSION }}-Windows.zip
             target/dist/FretboardTrainer-Windows.zip
+            target/dist/FretboardTrainer-v${{ steps.version.outputs.NEW_VERSION }}-Android.apk
+            target/dist/FretboardTrainer-Android.apk
             target/dist/fretboard-trainer-${{ steps.version.outputs.NEW_VERSION }}.jar
             target/dist/fretboard-trainer.jar
         env:
