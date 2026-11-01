@@ -48,7 +48,7 @@ public class AnalyticsChartPanel extends JPanel {
         g2.setColor(new Color(55, 60, 72));
         g2.drawRoundRect(8, 8, w - 16, h - 16, 12, 12);
 
-        if (config.isAllStrings()) {
+        if (!config.isSingleString()) {
             drawAllStringsChart(g2, w, h);
         } else {
             drawSingleStringChart(g2, w, h);

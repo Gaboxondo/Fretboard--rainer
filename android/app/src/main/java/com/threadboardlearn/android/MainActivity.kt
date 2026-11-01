@@ -134,8 +134,8 @@ fun TrainerAppScreen(
     // Nota reproducida en modo libre (cuando la sesión no está activa)
     var freeExplorationNote by remember { mutableStateOf<String?>(null) }
 
-    // Selección de Cuerda (null = Todas las cuerdas, o STRING_1 a STRING_6)
-    var selectedString by remember { mutableStateOf<GuitarString?>(config.selectedString) }
+    // Selección progresiva de Cuerdas (1 a 6 cuerdas activas)
+    var selectedStrings by remember { mutableStateOf<Set<GuitarString>>(config.selectedStrings.toSet()) }
     var isStringMenuExpanded by remember { mutableStateOf(false) }
 
     // Estados de cuenta atrás y temporizador
@@ -467,16 +467,22 @@ fun TrainerAppScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-                // Selector de Cuerda (Todas o específica 1ª a 6ª)
+                // Selector de Cuerdas (Selección múltiple progresiva o todas)
                 Box {
+                    val allSelected = selectedStrings.size == GuitarString.values().size
                     FilterChip(
-                        selected = selectedString != null,
+                        selected = !allSelected,
                         onClick = { isStringMenuExpanded = true },
                         label = {
-                            val strLabel = if (selectedString == null) {
-                                I18n.get("control.all_strings")
-                            } else {
-                                selectedString!!.localizedLabel
+                            val strLabel = when {
+                                allSelected -> I18n.get("control.all_strings")
+                                selectedStrings.size == 1 -> selectedStrings.first().localizedLabel
+                                else -> {
+                                    val shortNames = selectedStrings
+                                        .sortedByDescending { it.number }
+                                        .joinToString(", ") { it.localizedShortLabel }
+                                    I18n.get("control.strings_selected", shortNames)
+                                }
                             }
                             Text("🎸 $strLabel", fontSize = 12.sp)
                         },
@@ -495,28 +501,37 @@ fun TrainerAppScreen(
                     ) {
                         DropdownMenuItem(
                             text = { Text("🎸 " + I18n.get("control.all_strings")) },
-                            leadingIcon = if (selectedString == null) {
-                                { Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
-                            } else null,
+                            leadingIcon = {
+                                Checkbox(
+                                    checked = allSelected,
+                                    onCheckedChange = null
+                                )
+                            },
                             onClick = {
-                                config.selectedString = null
-                                selectedString = null
-                                isStringMenuExpanded = false
-                                if (isRunning) session.nextChallenge()
+                                config.setAllStrings(!config.isAllStrings)
+                                selectedStrings = config.selectedStrings.toSet()
+                                if (isRunning && currentChallenge?.targetString() !in selectedStrings) {
+                                    session.nextChallenge()
+                                }
                             }
                         )
                         HorizontalDivider()
-                        GuitarString.values().forEach { gStr ->
+                        GuitarString.values().sortedByDescending { it.number }.forEach { gStr ->
+                            val isStrSelected = selectedStrings.contains(gStr)
                             DropdownMenuItem(
                                 text = { Text(gStr.localizedLabel) },
-                                leadingIcon = if (selectedString == gStr) {
-                                    { Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
-                                } else null,
+                                leadingIcon = {
+                                    Checkbox(
+                                        checked = isStrSelected,
+                                        onCheckedChange = null
+                                    )
+                                },
                                 onClick = {
-                                    config.selectedString = gStr
-                                    selectedString = gStr
-                                    isStringMenuExpanded = false
-                                    if (isRunning) session.nextChallenge()
+                                    config.toggleString(gStr)
+                                    selectedStrings = config.selectedStrings.toSet()
+                                    if (isRunning && currentChallenge?.targetString() !in selectedStrings) {
+                                        session.nextChallenge()
+                                    }
                                 }
                             )
                         }

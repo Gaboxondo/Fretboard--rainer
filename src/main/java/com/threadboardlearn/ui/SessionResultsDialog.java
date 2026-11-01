@@ -197,7 +197,7 @@ public class SessionResultsDialog extends JDialog {
             return I18n.get("results.advice_flawless");
         }
 
-        if (session.getConfig().isAllStrings()) {
+        if (!session.getConfig().isSingleString()) {
             GuitarString worst = engine.getMostFailedString();
             if (worst != null) {
                 return I18n.get("results.advice_worst_string", worst.getLocalizedLabel());

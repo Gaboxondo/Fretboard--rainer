@@ -89,7 +89,7 @@ Permite responder de dos formas complementarias:
   - Clics directos en el mástil como alternativa táctica al micrófono.
 - 🔊 **Sintetizador Acústico de Referencia**: Generador de tono armónico integrado para entrenar el oído musical junto al reconocimiento visual.
 - ⚙️ **Modos de Práctica Flexibles y Configurables**:
-  - **Cuerdas**: Entrena una cuerda aislada (de la 1ª a la 6ª) o activa todas las cuerdas aleatoriamente.
+  - **Selección Múltiple Progresiva de Cuerdas**: Selecciona cualquier combinación personalizada de cuerdas (por ejemplo, practicar solo la 6ª y 5ª cuerda a la vez), aísla una cuerda individual (de la 1ª a la 6ª) o activa las 6 cuerdas aleatoriamente.
   - **Alteraciones**: Alterna entre solo notas naturales (`A, B, C, D, E, F, G`) y la escala cromática completa con sostenidos (`#`).
   - **Temporizador**: Retos de 3s a 15s o práctica relajada sin límite de tiempo.
   - **Rango del Mástil**: 12 trastes estándar, 15 trastes o 24 trastes completos.

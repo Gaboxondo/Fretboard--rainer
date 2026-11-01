@@ -128,14 +128,9 @@ public class TrainingSession {
         challengeCompleted.set(false);
         sustainedTargetNoteFrames = 0;
 
-        // 1. Seleccionar Cuerda
-        GuitarString targetString;
-        if (config.isAllStrings()) {
-            GuitarString[] strings = GuitarString.values();
-            targetString = strings[random.nextInt(strings.length)];
-        } else {
-            targetString = config.getSelectedString();
-        }
+        // 1. Seleccionar Cuerda entre las cuerdas seleccionadas por el usuario
+        List<GuitarString> activeStrings = config.getActiveStringsList();
+        GuitarString targetString = activeStrings.get(random.nextInt(activeStrings.size()));
 
         // 2. Seleccionar Nota (con probabilidad ponderada adaptativa o aleatorio uniforme)
         List<Note> availableNotes = getAvailableNotes();

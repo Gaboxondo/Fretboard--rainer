@@ -85,7 +85,7 @@ Inspired by proven fretboard learning methodologies like [FaChords Guitar Fretbo
   - Interactive mouse input: click notes directly on the diapason as an alternative to microphone input.
 - 🔊 **Acoustic Reference Synthesizer**: Built-in tone generator with realistic acoustic harmonic decays to train your ear alongside your visual recognition.
 - ⚙️ **Configurable Training Modes**:
-  - **Strings**: Isolate individual strings (1st to 6th) or shuffle all strings randomly.
+  - **Progressive Multi-String Selection**: Select any custom combination of strings (e.g., practice only the 6th and 5th strings together), isolate a single string (1st to 6th), or shuffle all 6 strings randomly.
   - **Accidentals**: Toggle between Natural notes only (`A, B, C, D, E, F, G`) and Full Chromatic with Sharps (`#`).
   - **Countdown Timer**: 2s to 30s timers or untimed relaxed practice.
   - **Fret Neck Range**: Frets 0–12 (standard) or customized fret ranges.

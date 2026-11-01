@@ -7,6 +7,8 @@ import com.threadboardlearn.model.TrainingConfig;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -14,7 +16,17 @@ import java.util.function.Consumer;
  */
 @SuppressWarnings("serial")
 public class ControlPanel extends JPanel {
-    private final JComboBox<String> stringComboBox = new JComboBox<>();
+    private static final GuitarString[] PROGRESSIVE_STRINGS = {
+            GuitarString.STRING_6,
+            GuitarString.STRING_5,
+            GuitarString.STRING_4,
+            GuitarString.STRING_3,
+            GuitarString.STRING_2,
+            GuitarString.STRING_1
+    };
+
+    private final JToggleButton allStringsButton = new JToggleButton();
+    private final Map<GuitarString, JToggleButton> stringButtons = new EnumMap<>(GuitarString.class);
     private final JCheckBox sharpsCheckBox = new JCheckBox();
     private final JComboBox<String> timeLimitComboBox = new JComboBox<>();
     private final JCheckBox playAudioCheckBox = new JCheckBox();
@@ -57,12 +69,26 @@ public class ControlPanel extends JPanel {
         optionsGrid.setOpaque(false);
         optionsGrid.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
 
-        // Fila 1: Cuerda y Sostenidos
-        JPanel stringBox = new JPanel(new BorderLayout(5, 0));
+        // Fila 1: Selección progresiva de Cuerdas (múltiple) y Sostenidos
+        JPanel stringBox = new JPanel(new BorderLayout(6, 0));
         stringBox.setOpaque(false);
         strLbl.setFont(new Font("SansSerif", Font.BOLD, 12));
         stringBox.add(strLbl, BorderLayout.WEST);
-        stringBox.add(stringComboBox, BorderLayout.CENTER);
+
+        JPanel stringButtonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 1));
+        stringButtonsPanel.setOpaque(false);
+
+        styleStringToggle(allStringsButton);
+        stringButtonsPanel.add(allStringsButton);
+
+        for (GuitarString gs : PROGRESSIVE_STRINGS) {
+            JToggleButton btn = new JToggleButton();
+            styleStringToggle(btn);
+            stringButtons.put(gs, btn);
+            stringButtonsPanel.add(btn);
+        }
+
+        stringBox.add(stringButtonsPanel, BorderLayout.CENTER);
         optionsGrid.add(stringBox);
         optionsGrid.add(sharpsCheckBox);
 
@@ -109,16 +135,16 @@ public class ControlPanel extends JPanel {
         startStopButton.setBackground(new Color(40, 167, 69));
         startStopButton.setForeground(Color.WHITE);
         startStopButton.setFocusPainted(false);
-        startStopButton.setPreferredSize(new Dimension(190, 38));
+        startStopButton.setPreferredSize(new Dimension(185, 38));
 
         nextButton.setFont(new Font("SansSerif", Font.BOLD, 13));
         nextButton.setEnabled(false);
         nextButton.setFocusPainted(false);
-        nextButton.setPreferredSize(new Dimension(135, 38));
+        nextButton.setPreferredSize(new Dimension(130, 38));
 
         resultsButton.setFont(new Font("SansSerif", Font.BOLD, 13));
         resultsButton.setFocusPainted(false);
-        resultsButton.setPreferredSize(new Dimension(145, 38));
+        resultsButton.setPreferredSize(new Dimension(135, 38));
 
         actionPanel.add(startStopButton);
         actionPanel.add(nextButton);
@@ -130,15 +156,37 @@ public class ControlPanel extends JPanel {
         setupListeners();
         updateI18n();
 
-
         // Valores por defecto
         playAudioCheckBox.setSelected(true);
         micEnabledCheckBox.setSelected(true);
         exactOctaveCheckBox.setSelected(true);
         adaptiveCheckBox.setSelected(true);
-        int defaultStringIdx = config.getSelectedString() != null ? config.getSelectedString().getNumber() : 6;
-        stringComboBox.setSelectedIndex(defaultStringIdx);
+        refreshStringButtons();
         timeLimitComboBox.setSelectedIndex(getIndexForTimeLimit(config.getTimeLimitSeconds()));
+    }
+
+    private void styleStringToggle(JToggleButton btn) {
+        btn.setFont(new Font("SansSerif", Font.BOLD, 11));
+        btn.setMargin(new Insets(2, 5, 2, 5));
+        btn.setFocusPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }
+
+    private void refreshStringButtons() {
+        boolean all = config.isAllStrings();
+        allStringsButton.setSelected(all);
+        allStringsButton.setBackground(all ? new Color(40, 140, 210) : new Color(45, 50, 60));
+        allStringsButton.setForeground(all ? Color.WHITE : new Color(160, 168, 180));
+
+        for (GuitarString gs : PROGRESSIVE_STRINGS) {
+            JToggleButton btn = stringButtons.get(gs);
+            if (btn != null) {
+                boolean selected = config.isStringSelected(gs);
+                btn.setSelected(selected);
+                btn.setBackground(selected ? new Color(217, 136, 18) : new Color(45, 50, 60));
+                btn.setForeground(selected ? Color.WHITE : new Color(150, 158, 170));
+            }
+        }
     }
 
     private int getIndexForTimeLimit(int seconds) {
@@ -155,15 +203,20 @@ public class ControlPanel extends JPanel {
     }
 
     private void setupListeners() {
-        stringComboBox.addActionListener(e -> {
+        allStringsButton.addActionListener(e -> {
             if (updatingI18n) return;
-            int idx = stringComboBox.getSelectedIndex();
-            if (idx <= 0) {
-                config.setSelectedString(null);
-            } else {
-                config.setSelectedString(GuitarString.fromNumber(idx));
-            }
+            config.setAllStrings(!config.isAllStrings());
+            refreshStringButtons();
         });
+
+        for (GuitarString gs : PROGRESSIVE_STRINGS) {
+            JToggleButton btn = stringButtons.get(gs);
+            btn.addActionListener(e -> {
+                if (updatingI18n) return;
+                config.toggleString(gs);
+                refreshStringButtons();
+            });
+        }
 
         sharpsCheckBox.addActionListener(e -> {
             if (updatingI18n) return;
@@ -251,7 +304,6 @@ public class ControlPanel extends JPanel {
         setCallbacks(onStartStop, onNext, onMaxFretChanged, null);
     }
 
-
     public void updateSessionState(boolean isRunning) {
         this.isRunning = isRunning;
         if (isRunning) {
@@ -268,7 +320,10 @@ public class ControlPanel extends JPanel {
     }
 
     private void setOptionsEnabled(boolean enabled) {
-        stringComboBox.setEnabled(enabled);
+        allStringsButton.setEnabled(enabled);
+        for (JToggleButton btn : stringButtons.values()) {
+            btn.setEnabled(enabled);
+        }
         sharpsCheckBox.setEnabled(enabled);
         adaptiveCheckBox.setEnabled(enabled);
         timeLimitComboBox.setEnabled(enabled);
@@ -299,19 +354,17 @@ public class ControlPanel extends JPanel {
             gateLbl.setToolTipText(I18n.get("control.noise_gate_tooltip"));
             noiseGateSlider.setToolTipText(I18n.get("control.noise_gate_slider_tooltip"));
 
-            // Actualizar opciones de combos manteniendo la selección actual
-            int selectedString = stringComboBox.getSelectedIndex();
-            stringComboBox.removeAllItems();
-            stringComboBox.addItem(I18n.get("control.all_strings"));
-            for (GuitarString s : GuitarString.values()) {
-                stringComboBox.addItem(s.getLocalizedLabel());
+            // Actualizar textos y tooltips de los botones de selección de cuerdas
+            allStringsButton.setText(I18n.get("control.all_strings_short"));
+            allStringsButton.setToolTipText(I18n.get("control.all_strings_tooltip"));
+            for (GuitarString gs : PROGRESSIVE_STRINGS) {
+                JToggleButton btn = stringButtons.get(gs);
+                if (btn != null) {
+                    btn.setText(gs.getLocalizedShortLabel());
+                    btn.setToolTipText(I18n.get("control.string_toggle_tooltip", gs.getLocalizedLabel()));
+                }
             }
-            if (selectedString >= 0 && selectedString < stringComboBox.getItemCount()) {
-                stringComboBox.setSelectedIndex(selectedString);
-            } else {
-                int defaultIdx = config.getSelectedString() != null ? config.getSelectedString().getNumber() : 6;
-                stringComboBox.setSelectedIndex(defaultIdx);
-            }
+            refreshStringButtons();
 
             int selectedTime = timeLimitComboBox.getSelectedIndex();
             timeLimitComboBox.removeAllItems();

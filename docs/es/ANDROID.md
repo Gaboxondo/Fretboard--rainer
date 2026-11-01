@@ -54,8 +54,9 @@ ThreadBoardlearn/
    - Permite entrenar con guitarra acústica, clásica o eléctrica (mediante interfaz de audio USB o micrófono del dispositivo).
    - Incluye medidor visual VU de nivel de entrada e indicación de nota detectada en vivo.
 
-3. **Motor de Aprendizaje Adaptativo:**
+3. **Motor de Aprendizaje Adaptativo y Selección Progresiva de Cuerdas:**
    - Registra fallos, aciertos y tiempos de reacción individuales para priorizar automáticamente aquellas notas donde el usuario muestra mayor dificultad o vacilación.
+   - Permite seleccionar cualquier combinación personalizada de cuerdas (por ejemplo, practicar solo la 6ª y 5ª cuerda), una cuerda individual o las 6 cuerdas para un aprendizaje progresivo.
 
 4. **Sintetizador y Efectos de Audio:**
    - Generación de armónicos acústicos con decaimiento natural y sonidos de refuerzo mediante `AudioTrack`.
@@ -90,3 +91,4 @@ Desde la carpeta `android/`:
 
 El archivo APK generado se ubicará en:
 `android/app/build/outputs/apk/debug/app-debug.apk`
+

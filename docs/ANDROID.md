@@ -54,8 +54,9 @@ ThreadBoardlearn/
    - Practice with acoustic, classical, or electric guitar (via USB audio interface or built-in microphone).
    - Live VU audio level meter and real-time detected note badge.
 
-3. **Smart Adaptive Learning Engine:**
+3. **Smart Adaptive Learning Engine & Progressive String Selection:**
    - Tracks misses, correct answers, and response times to dynamically weight and prioritize notes you find most challenging.
+   - Allows selecting any custom combination of strings (e.g., 6th and 5th strings together), a single string, or all 6 strings for progressive fretboard mastery.
 
 4. **Acoustic Synthesizer & Audio Feedback:**
    - Acoustic harmonic synthesis with realistic string decay and success/failure audio cues via `AudioTrack`.

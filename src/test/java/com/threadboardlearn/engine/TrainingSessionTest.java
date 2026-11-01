@@ -153,6 +153,24 @@ class TrainingSessionTest {
         session.shutdown();
     }
 
+    @Test
+    @DisplayName("Debe generar retos únicamente en las cuerdas seleccionadas (ej. 6ª y 5ª cuerda)")
+    void testMultiStringSelectionGeneratesOnlySelectedStrings() {
+        config.setSelectedStrings(java.util.Set.of(GuitarString.STRING_6, GuitarString.STRING_5));
+        config.setPlayReferenceAudio(false);
+
+        session.start();
+        for (int i = 0; i < 25; i++) {
+            session.nextChallenge();
+            Challenge challenge = session.getCurrentChallenge();
+            assertThat(challenge).isNotNull();
+            assertThat(challenge.targetString())
+                    .isIn(GuitarString.STRING_6, GuitarString.STRING_5);
+        }
+
+        session.shutdown();
+    }
+
     private static class TestGameEventListener implements GameEventListener {
         @Override public void onChallengeStarted(Challenge challenge) {}
         @Override public void onTimerTick(int secondsRemaining, double percentElapsed) {}
