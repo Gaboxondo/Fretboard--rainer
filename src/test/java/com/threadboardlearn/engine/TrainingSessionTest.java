@@ -81,6 +81,78 @@ class TrainingSessionTest {
         session.shutdown();
     }
 
+    @Test
+    @DisplayName("El micrófono debe ignorar la nota mientras suena el audio de referencia para no auto-validarse")
+    void testMicrophoneIgnoredDuringReferenceAudio() {
+        config.setPlayReferenceAudio(true);
+        config.setMicrophoneEnabled(true);
+
+        session.start();
+        assertThat(session.isReferenceAudioPlaying()).isTrue();
+
+        Challenge challenge = session.getCurrentChallenge();
+        int validFret = challenge.validFrets().get(0);
+        double targetFreq = challenge.targetString().getFrequencyAtFret(validFret);
+        PitchDetectionResult matchingPitch = new PitchDetectionResult(
+                targetFreq, 0.95, challenge.targetNote(), 0.0, 0.08, true
+        );
+
+        // Enviar múltiples detecciones que coinciden perfectamente con la nota
+        for (int i = 0; i < 5; i++) {
+            micCapture.listener.onPitchDetected(matchingPitch);
+        }
+
+        // No debe haberse validado como acierto porque aún estaba sonando el audio de la propia app
+        assertThat(session.getStats().getCorrectCount()).isEqualTo(0);
+        assertThat(audioPlayer.successSoundPlayed).isFalse();
+
+        session.shutdown();
+    }
+
+    @Test
+    @DisplayName("El micrófono debe validar el acierto cuando el audio de referencia no está sonando")
+    void testMicrophoneEvaluatesWhenAudioNotPlaying() {
+        config.setPlayReferenceAudio(false);
+        config.setMicrophoneEnabled(true);
+
+        session.start();
+        assertThat(session.isReferenceAudioPlaying()).isFalse();
+
+        Challenge challenge = session.getCurrentChallenge();
+        int validFret = challenge.validFrets().get(0);
+        double targetFreq = challenge.targetString().getFrequencyAtFret(validFret);
+        PitchDetectionResult matchingPitch = new PitchDetectionResult(
+                targetFreq, 0.95, challenge.targetNote(), 0.0, 0.08, true
+        );
+
+        // Enviar 3 frames consecutivos estables (REQUIRED_SUSTAINED_FRAMES = 3)
+        for (int i = 0; i < 3; i++) {
+            micCapture.listener.onPitchDetected(matchingPitch);
+        }
+
+        // Ahora sí debe haberse validado con éxito
+        assertThat(session.getStats().getCorrectCount()).isEqualTo(1);
+        assertThat(audioPlayer.successSoundPlayed).isTrue();
+
+        session.shutdown();
+    }
+
+    @Test
+    @DisplayName("Replay audio debe reactivar la protección contra auto-detección del micrófono")
+    void testReplayChallengeAudioProtectsMicrophone() {
+        config.setPlayReferenceAudio(false);
+        config.setMicrophoneEnabled(true);
+
+        session.start();
+        assertThat(session.isReferenceAudioPlaying()).isFalse();
+
+        // El usuario solicita reproducir la nota de nuevo
+        session.replayChallengeAudio();
+        assertThat(session.isReferenceAudioPlaying()).isTrue();
+
+        session.shutdown();
+    }
+
     private static class TestGameEventListener implements GameEventListener {
         @Override public void onChallengeStarted(Challenge challenge) {}
         @Override public void onTimerTick(int secondsRemaining, double percentElapsed) {}

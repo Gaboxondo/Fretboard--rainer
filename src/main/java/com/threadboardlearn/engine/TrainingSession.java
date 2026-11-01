@@ -47,6 +47,8 @@ public class TrainingSession {
     private final ScheduledExecutorService timerScheduler = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> timerTask;
 
+    private volatile long micIgnoredUntilMs = 0L;
+
     private int sustainedTargetNoteFrames = 0;
     private static final int REQUIRED_SUSTAINED_FRAMES = 3; // ~140 ms de tono estable
     private double lastCandidateFrequency = 0.0;
@@ -73,6 +75,10 @@ public class TrainingSession {
     public Challenge getCurrentChallenge() { return currentChallenge; }
     public void setListener(GameEventListener listener) { this.listener = listener; }
     public GameEventListener getListener() { return listener; }
+
+    public boolean isReferenceAudioPlaying() {
+        return System.currentTimeMillis() < micIgnoredUntilMs;
+    }
 
     public boolean isRunning() {
         return running.get();
@@ -157,19 +163,26 @@ public class TrainingSession {
         }
 
         // 5. Reproducir audio de referencia si está activado
-        if (config.isPlayReferenceAudio() && !validFrets.isEmpty() && audioPlayer != null) {
+        boolean playAudio = config.isPlayReferenceAudio() && !validFrets.isEmpty() && audioPlayer != null;
+        if (playAudio) {
+            micIgnoredUntilMs = System.currentTimeMillis() + AudioPlayerService.REFERENCE_AUDIO_GUARD_MS;
             audioPlayer.playGuitarNote(targetString, validFrets.get(0));
+            // Iniciar cronómetro tras la reproducción del audio de referencia
+            startTimer(AudioPlayerService.REFERENCE_AUDIO_GUARD_MS);
+        } else {
+            micIgnoredUntilMs = 0L;
+            startTimer(0);
         }
-
-        // 6. Iniciar cronómetro si hay límite de tiempo
-        startTimer();
     }
 
     /**
      * Vuelve a reproducir el sonido de la nota del reto actual.
      */
-    public void replayChallengeAudio() {
+    public synchronized void replayChallengeAudio() {
         if (currentChallenge != null && !currentChallenge.validFrets().isEmpty() && audioPlayer != null) {
+            micIgnoredUntilMs = System.currentTimeMillis() + AudioPlayerService.REFERENCE_AUDIO_GUARD_MS;
+            sustainedTargetNoteFrames = 0;
+            lastCandidateFrequency = 0.0;
             audioPlayer.playGuitarNote(currentChallenge.targetString(), currentChallenge.validFrets().get(0));
         }
     }
@@ -198,6 +211,9 @@ public class TrainingSession {
 
             // Reproducir la nota que el usuario ha tocado para su oído
             if (audioPlayer != null) {
+                micIgnoredUntilMs = System.currentTimeMillis() + AudioPlayerService.REFERENCE_AUDIO_GUARD_MS;
+                sustainedTargetNoteFrames = 0;
+                lastCandidateFrequency = 0.0;
                 audioPlayer.playGuitarNote(string, fret);
             }
             return false;
@@ -209,6 +225,14 @@ public class TrainingSession {
      */
     private void handleMicrophonePitch(PitchDetectionResult result) {
         if (!running.get()) return;
+
+        // Si todavía está sonando el audio reproducido por la propia app,
+        // el micrófono se mantiene inactivo para no captar el altavoz y evitar falsos positivos
+        if (System.currentTimeMillis() < micIgnoredUntilMs) {
+            sustainedTargetNoteFrames = 0;
+            lastCandidateFrequency = 0.0;
+            return;
+        }
 
         // Notificar nivel / tono a la UI para el VU meter y afinador
         if (listener != null) {
@@ -273,7 +297,12 @@ public class TrainingSession {
         if (challengeCompleted.getAndSet(true)) return;
         stopTimer();
 
-        long reactionTime = System.currentTimeMillis() - currentChallenge.startTimeMs();
+        long now = System.currentTimeMillis();
+        long effectiveStartTime = currentChallenge.startTimeMs() +
+                (config.isPlayReferenceAudio() ? AudioPlayerService.REFERENCE_AUDIO_GUARD_MS : 0);
+        long rawReactionTime = (now >= effectiveStartTime) ? (now - effectiveStartTime) : (now - currentChallenge.startTimeMs());
+        final long reactionTime = Math.max(50, rawReactionTime);
+
         stats.recordSuccess(reactionTime);
         if (config.isAdaptiveLearning()) {
             adaptiveEngine.recordSuccess(currentChallenge.targetNote(), currentChallenge.targetString(), reactionTime);
@@ -330,7 +359,7 @@ public class TrainingSession {
         return config.isIncludeSharps() ? Note.getAllNotes() : Note.getNaturalNotes();
     }
 
-    private void startTimer() {
+    private synchronized void startTimer(long startDelayMs) {
         int limitSeconds = config.getTimeLimitSeconds();
         if (limitSeconds <= 0) {
             // Sin límite de tiempo
@@ -339,6 +368,24 @@ public class TrainingSession {
             }
             return;
         }
+
+        // Notificar tiempo restante inicial a la UI
+        if (listener != null) {
+            eventDispatcher.dispatch(() -> listener.onTimerTick(limitSeconds, 0.0));
+        }
+
+        if (startDelayMs <= 0) {
+            scheduleTimerTask(limitSeconds);
+        } else {
+            timerTask = timerScheduler.schedule(() -> {
+                if (!running.get() || challengeCompleted.get()) return;
+                scheduleTimerTask(limitSeconds);
+            }, startDelayMs, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private synchronized void scheduleTimerTask(int limitSeconds) {
+        if (!running.get() || challengeCompleted.get()) return;
 
         long startTime = System.currentTimeMillis();
         long totalDurationMs = limitSeconds * 1000L;

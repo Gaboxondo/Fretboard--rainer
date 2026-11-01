@@ -25,7 +25,7 @@ class AndroidAudioPlayer : AudioPlayerService {
     override fun playGuitarNote(string: GuitarString, fret: Int) {
         val midiNote = string.getMidiNoteAtFret(fret)
         val freq = midiToFreq(midiNote)
-        playPcmTone(freq, 1200)
+        playPcmTone(freq, AudioPlayerService.REFERENCE_NOTE_DURATION_MS)
     }
 
     override fun playNote(note: Note, preferredString: GuitarString?) {

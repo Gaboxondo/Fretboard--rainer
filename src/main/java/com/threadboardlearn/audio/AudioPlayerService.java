@@ -8,6 +8,9 @@ import com.threadboardlearn.model.Note;
  * Permite implementaciones en Desktop (Java MIDI / Sound) y en Android (SoundPool / AudioTrack).
  */
 public interface AudioPlayerService {
+    int REFERENCE_NOTE_DURATION_MS = 1000;
+    int REFERENCE_AUDIO_GUARD_MS = 1200;
+
     void playGuitarNote(GuitarString string, int fret);
     void playNote(Note note, GuitarString preferredString);
     void playSuccessSound();

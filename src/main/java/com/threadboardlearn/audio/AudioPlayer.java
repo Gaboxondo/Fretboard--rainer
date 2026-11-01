@@ -52,7 +52,7 @@ public class AudioPlayer implements AudioPlayerService {
      */
     public void playGuitarNote(GuitarString string, int fret) {
         int midiNote = string.getMidiNoteAtFret(fret);
-        playMidiNote(midiNote, 100, 1500);
+        playMidiNote(midiNote, 100, REFERENCE_NOTE_DURATION_MS);
     }
 
     /**
