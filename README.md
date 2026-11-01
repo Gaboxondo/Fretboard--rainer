@@ -257,7 +257,7 @@ flowchart TD
     H -->|bug/* or hotfix/*| J["Bumps PATCH (e.g., 1.0.0 ➔ 1.0.1)"]
     I --> K[Auto-Update pom.xml & README]
     J --> K
-    K --> L[Generate Installers (Windows .exe and Android .apk)]
+    K --> L["Generate Installers (Windows .exe and Android .apk)"]
     L --> M[Create Git Tag vX.Y.Z & Push]
     M --> N[Publish GitHub Release with Windows and Android Apps]
 ```

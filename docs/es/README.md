@@ -266,7 +266,7 @@ flowchart TD
     H -->|bug/* o hotfix/*| J["Incrementa PARCHE (ej. 1.0.0 ➔ 1.0.1)"]
     I --> K[Auto-Actualiza pom.xml y README]
     J --> K
-    K --> L[Genera Instaladores (Windows .exe y Android .apk)]
+    K --> L["Genera Instaladores (Windows .exe y Android .apk)"]
     L --> M[Crea Etiqueta Git vX.Y.Z y Hace Push]
     M --> N[Publica Release en GitHub con Apps para Windows y Android]
 ```
